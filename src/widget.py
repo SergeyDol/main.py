@@ -23,3 +23,17 @@ def mask_account_card(account_info: str) -> str:
 
     # Убираем лишний пробел, если name_part пустой
     return f"{name_part.capitalize()} {masked_number}".strip() if name_part else masked_number
+
+
+from datetime import datetime
+
+def get_date(date_str: str) -> str:
+    """Преобразует дату из формата 'YYYY-MM-DDThh:mm:ss.ssssss' в 'DD.MM.YYYY'."""
+    try:
+        # Парсим строку в объект datetime
+        date_obj = datetime.fromisoformat(date_str)
+        # Форматируем в нужный вид
+        return date_obj.strftime("%d.%m.%Y")
+    except ValueError:
+        # Если входная строка некорректна, возвращаем её как есть
+        return date_str
