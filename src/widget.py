@@ -7,7 +7,7 @@ def mask_account_card(account_info: str) -> str:
     # Определяем, является ли последняя часть номером (состоит из цифр)
     number_part = parts[-1]
     if not number_part.isdigit():
-        return account_info  # Если последняя часть не цифры, возвращаем как есть
+        return account_info
 
     name_part = ' '.join(parts[:-1]).lower()
 
@@ -23,8 +23,3 @@ def mask_account_card(account_info: str) -> str:
 
     # Убираем лишний пробел, если name_part пустой
     return f"{name_part.capitalize()} {masked_number}".strip() if name_part else masked_number
-
-print(mask_account_card("7000792289606361"))
-print(mask_account_card("73654108430135874305"))
-print(mask_account_card("Счет 73654108430135874305"))
-print(mask_account_card("Visa 7000792289606361"))
