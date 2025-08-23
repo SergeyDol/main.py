@@ -12,9 +12,6 @@ git@github.com:SergeyDol/main.py.git
 pip install -r requirements.txt
 ```
 ## Использование:
-Загрузить файл, запустить
-
-##Использование:
 
 Импорт модулей
 python
