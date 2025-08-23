@@ -14,8 +14,9 @@ pip install -r requirements.txt
 ## Использование:
 Загрузить файл, запустить
 
-##Использование
-###Импорт модулей
+##Использование:
+
+Импорт модулей
 python
 ```
 from src.masks import get_mask_card_number, get_mask_account
