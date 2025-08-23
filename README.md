@@ -12,3 +12,4 @@ git clone https://github.com/username/project-x.git
 pip install -r requirements.txt
 ```
 ## Использование:
+Загрузить файл, запустить
