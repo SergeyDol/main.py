@@ -5,7 +5,7 @@
 
 1. Клонируйте репозиторий:
 ```
-git clone https://github.com/username/project-x.git
+git@github.com:SergeyDol/main.py.git
 ```
 2. Установите зависимости:
 ```
