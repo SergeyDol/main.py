@@ -27,13 +27,13 @@ def mask_account_card(account_info: str) -> str:
     return f"{name_part.capitalize()} {masked_number}".strip() if name_part else masked_number
 
 
-def get_date(date_str: str) -> str:
+def get_date(date_string: str) -> str:
     """Преобразует дату из формата 'YYYY-MM-DDThh:mm:ss.ssssss' в 'DD.MM.YYYY'."""
     try:
         # Парсим строку в объект datetime
-        date_obj = datetime.fromisoformat(date_str)
+        date_object = datetime.fromisoformat(date_string)
         # Форматируем в нужный вид
-        return date_obj.strftime("%d.%m.%Y")
+        return date_object.strftime("%d.%m.%Y")
     except ValueError:
         # Если входная строка некорректна, возвращаем её как есть
-        return date_str
+        return date_string
