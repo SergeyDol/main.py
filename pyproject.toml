@@ -21,6 +21,10 @@ black = "^25.1.0"
 isort = "^6.0.1"
 mypy = "^1.17.1"
 
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.4.1"
+
 [tool.black]
 line-length = 119
 target-version = ["py38", "py39", "py310", "py311"]
@@ -51,3 +55,19 @@ exclude = [
     "^/.venv/",
     "/build/",
 ]
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = E203, W503
+exclude = .git,__pycache__,old,build,dist
