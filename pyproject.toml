@@ -24,6 +24,7 @@ mypy = "^1.17.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.1"
+pytest-cov = "^6.2.1"
 
 [tool.black]
 line-length = 119
@@ -47,7 +48,7 @@ force_grid_wrap = 0
 use_parentheses = true
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.9"
 disallow_untyped_defs = true
 warn_return_any = true
 exclude = [
@@ -55,19 +56,14 @@ exclude = [
     "^/.venv/",
     "/build/",
 ]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 
-[tool.mypy]
-python_version = "3.9"
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = true
-
 [tool.flake8]
 max-line-length = 88
-extend-ignore = E203, W503
-exclude = .git,__pycache__,old,build,dist
+extend-ignore = "E203, W503"
+exclude = ".git,__pycache__,old,build,dist"
