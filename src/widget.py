@@ -3,37 +3,65 @@ from datetime import datetime
 
 def mask_account_card(account_info: str) -> str:
     """Маскирует номер карты или счета в переданной строке."""
+    if not account_info or not isinstance(account_info, str):
+        return account_info or ""
+
+    # Если вся строка состоит из 16 цифр - это номер карты
+    if account_info.isdigit() and len(account_info) == 16:
+        return f"{account_info[:4]} {account_info[4:6]}** **** {account_info[-4:]}"
+
     parts = account_info.split()
     if not parts:
         return account_info
 
-    # Определяем, является ли последняя часть номером (состоит из цифр)
     number_part = parts[-1]
+
+    # Если последняя часть не состоит из цифр, возвращаем как есть
     if not number_part.isdigit():
         return account_info
 
-    name_part = " ".join(parts[:-1]).lower()
+    name_part = " ".join(parts[:-1])
 
-    if not name_part or "счет" in name_part:
-        # Маскировка для счета (если тип не указан или указан "счет")
-        masked_number = "**" + number_part[-4:]
+    # Определяем тип на основе названия или длины номера
+    if name_part:
+        # Если есть название, проверяем ключевые слова для счета
+        if any(keyword in name_part.lower() for keyword in ["счет", "account"]):
+            # Это счет
+            if len(number_part) >= 4:
+                return f"{name_part} **{number_part[-4:]}"
+            return account_info
+        else:
+            # Это карта
+            if len(number_part) == 16:
+                return f"{name_part} {number_part[:4]} {number_part[4:6]}** **** {number_part[-4:]}"
+            return account_info
     else:
-        # Маскировка для карты (если тип указан и это не "счет")
-        if len(number_part) != 16:
-            return account_info  # Некорректная длина номера карты
-        masked_number = number_part[:4] + " " + number_part[4:6] + "** **** " + number_part[-4:]
-
-    # Убираем лишний пробел, если name_part пустой
-    return f"{name_part.capitalize()} {masked_number}".strip() if name_part else masked_number
+        # Если нет названия, определяем по длине номера
+        if len(number_part) == 16:
+            return f"{number_part[:4]} {number_part[4:6]}** **** {number_part[-4:]}"
+        elif len(number_part) >= 4:
+            return f"**{number_part[-4:]}"
+        return account_info
 
 
 def get_date(date_string: str) -> str:
     """Преобразует дату из формата 'YYYY-MM-DDThh:mm:ss.ssssss' в 'DD.MM.YYYY'."""
+    # Явная проверка на None и нестроковые значения
+    if date_string is None:
+        return ""
+
+    if not isinstance(date_string, str):
+        return ""
+
+    # Проверка на пустую строку
+    if not date_string.strip():
+        return ""
+
     try:
-        # Парсим строку в объект datetime
-        date_object = datetime.fromisoformat(date_string)
-        # Форматируем в нужный вид
+        # Обработка даты
+        clean_date = date_string.replace("Z", "+00:00")
+        date_object = datetime.fromisoformat(clean_date)
         return date_object.strftime("%d.%m.%Y")
-    except ValueError:
-        # Если входная строка некорректна, возвращаем её как есть
+    except (ValueError, TypeError):
+        # В случае ошибки возвращаем исходную строку
         return date_string
