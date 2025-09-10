@@ -144,7 +144,7 @@ def multiply(x, y):
 
 multiply(3, 4)  # Запись в файл: 2023-10-05 12:30:45 - multiply ok
 
-# Логирование ошибок
+# Логирование ошибок.
 @log()
 def divide(a, b):
     return a / b
