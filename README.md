@@ -116,3 +116,37 @@ tests/
 ├── test_processing.py
 ├── test_widget.py
 └── test_generators.py # Тесты для генераторов
+
+## decorators.py (НОВЫЙ)
+Декораторы для расширения функциональности функций:
+
+#### `log(filename: Optional[str] = None) -> Callable`
+Декоратор для логирования выполнения функций.
+
+**Параметры:**
+- `filename`: Имя файла для записи логов. Если None, логи выводятся в консоль.
+
+**Примеры:**
+```python
+from src.decorators import log
+
+# Логирование в консоль
+@log()
+def add(a, b):
+    return a + b
+
+add(1, 2)  # Вывод в консоль: 2023-10-05 12:30:45 - add ok
+
+# Логирование в файл
+@log(filename="operations.log")
+def multiply(x, y):
+    return x * y
+
+multiply(3, 4)  # Запись в файл: 2023-10-05 12:30:45 - multiply ok
+
+# Логирование ошибок
+@log()
+def divide(a, b):
+    return a / b
+
+divide(1, 0)  # Вывод в консоль: 2023-10-05 12:30:45 - divide error: ZeroDivisionError. Inputs: (1, 0), {}
