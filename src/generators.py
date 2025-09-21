@@ -43,7 +43,18 @@ def card_number_generator(start: int, end: int) -> Iterator[str]:
 
     Yields:
         Номера карт в формате "XXXX XXXX XXXX XXXX"
+
+    Raises:
+        ValueError: Если start > end или значения выходят за допустимые пределы
     """
+    # Проверка входных данных
+    if start < 1:
+        raise ValueError("Start value must be at least 1")
+    if start > end:
+        raise ValueError("Start value cannot be greater than end value")
+    if end > 9999999999999999:
+        raise ValueError("End value exceeds maximum card number (9999999999999999)")
+
     for number in range(start, end + 1):
         # Форматируем номер в 16-значный строковый формат с ведущими нулями
         card_number = str(number).zfill(16)
