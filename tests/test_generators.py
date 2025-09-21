@@ -171,15 +171,15 @@ class TestGenerators:
 
     def test_card_number_generator_invalid_range(self):
         """Тестирование генератора с некорректным диапазоном"""
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Start value cannot be greater than end value"):
             list(card_number_generator(5, 3))  # start > end
 
     def test_card_number_generator_negative(self):
         """Тестирование генератора с отрицательными значениями"""
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Start value must be at least 1"):
             list(card_number_generator(-1, 5))
 
     def test_card_number_generator_too_large(self):
         """Тестирование генератора со слишком большими значениями"""
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="End value exceeds maximum card number"):
             list(card_number_generator(1, 10000000000000000))  # Превышает 16 цифр

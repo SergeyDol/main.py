@@ -43,3 +43,110 @@ for transaction in usd_transactions:
     print(transaction["id"], transaction["operationAmount"]["amount"])
 transaction_descriptions(transactions: List[Dict]) -> Iterator[str]
 Возвращает итератор с описаниями всех транзакций.
+
+Пример:
+
+python
+from src.generators import transaction_descriptions
+
+descriptions = transaction_descriptions(transactions)
+for description in descriptions:
+    print(description)
+card_number_generator(start: int, end: int) -> Iterator[str]
+Генерирует номера банковских карт в заданном диапазоне.
+
+Пример:
+
+python
+from src.generators import card_number_generator
+
+# Генерация первых 5 номеров карт
+for card_number in card_number_generator(1, 5):
+    print(card_number)
+
+# Output:
+# 0000 0000 0000 0001
+# 0000 0000 0000 0002
+# 0000 0000 0000 0003
+# 0000 0000 0000 0004
+# 0000 0000 0000 0005
+Тестирование
+Для запуска тестов:
+
+bash
+pytest --cov=src --cov-report=html
+Отчет о покрытии тестами будет доступен в папке htmlcov/index.html
+
+Примеры использования
+python
+from src import masks, processing, widget, generators
+
+# Маскировка данных
+masked_card = masks.get_mask_card_number("1234567890123456")
+masked_account = masks.get_mask_account("12345678901234567890")
+
+# Обработка транзакций
+executed_operations = processing.filter_by_state(transactions, "EXECUTED")
+sorted_operations = processing.sort_by_date(transactions)
+
+# Работа с датами
+formatted_date = widget.get_date("2023-10-05T12:30:45.123456")
+
+# Использование генераторов
+usd_transactions = generators.filter_by_currency(transactions, "USD")
+descriptions = generators.transaction_descriptions(transactions)
+card_numbers = generators.card_number_generator(1, 100)
+Требования
+Python 3.7+
+
+pytest для тестирования
+
+flake8 для проверки стиля кода
+
+Структура проекта
+text
+src/
+├── __init__.py
+├── masks.py          # Маскировка карт и счетов
+├── processing.py     # Фильтрация и сортировка
+├── widget.py         # Утилиты
+└── generators.py     # Генераторы (НОВЫЙ)
+tests/
+├── test_masks.py
+├── test_processing.py
+├── test_widget.py
+└── test_generators.py # Тесты для генераторов
+
+## decorators.py (НОВЫЙ)
+Декораторы для расширения функциональности функций:
+
+#### `log(filename: Optional[str] = None) -> Callable`
+Декоратор для логирования выполнения функций.
+
+**Параметры:**
+- `filename`: Имя файла для записи логов. Если None, логи выводятся в консоль.
+
+**Примеры:**
+```python
+from src.decorators import log
+
+# Логирование в консоль
+@log()
+def add(a, b):
+    return a + b
+
+add(1, 2)  # Вывод в консоль: 2023-10-05 12:30:45 - add ok
+
+# Логирование в файл
+@log(filename="operations.log")
+def multiply(x, y):
+    return x * y
+
+multiply(3, 4)  # Запись в файл: 2023-10-05 12:30:45 - multiply ok
+
+# Логирование ошибок.
+@log()
+def divide(a, b):
+    return a / b
+
+divide(1, 0)  # Вывод в консоль: 2023-10-05 12:30:45 - divide error: ZeroDivisionError. Inputs: (1, 0), {}
