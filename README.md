@@ -9,6 +9,16 @@
 3. Установите проект: `pip install -e .`
 
 ## Модули
+## Модуль utils.py
+Функции для работы с файлами:
+
+#### `read_json_file(file_path: str) -> List[Dict]`
+Читает JSON-файл и возвращает список транзакций.
+
+```python
+from src.utils import read_json_file
+
+transactions = read_json_file("data/operations.json")
 
 ### masks.py
 Функции для маскировки банковских карт и счетов:
