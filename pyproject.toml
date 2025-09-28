@@ -56,6 +56,12 @@ exclude = [
     "^/.venv/",
     "/build/",
 ]
+line_length = 88
+known_third_party = ["requests", "pytest"]
+known_first_party = ["src"]
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+default_section = "THIRDPARTY"
+lines_after_imports = 2
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
