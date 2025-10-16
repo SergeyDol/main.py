@@ -1,6 +1,10 @@
 import os
 import requests
 from typing import Dict, Any, Optional
+from dotenv import load_dotenv
+
+# Загружаем переменные окружения из .env файла
+load_dotenv()
 
 
 def get_exchange_rate(from_currency: str, to_currency: str = "RUB") -> Optional[float]:
@@ -15,8 +19,11 @@ def get_exchange_rate(from_currency: str, to_currency: str = "RUB") -> Optional[
         Курс обмена или None в случае ошибки
     """
     api_key = os.getenv('EXCHANGE_RATE_API_KEY')
-    if not api_key:
-        raise ValueError("API key not found in environment variables")
+    if not api_key or api_key == 'your_api_key_here':
+        raise ValueError(
+            "API key not found or set to default. "
+            "Please set EXCHANGE_RATE_API_KEY in your .env file"
+        )
 
     url = f"https://api.apilayer.com/exchangerates_data/latest"
 
@@ -32,9 +39,11 @@ def get_exchange_rate(from_currency: str, to_currency: str = "RUB") -> Optional[
             data = response.json()
             return data['rates'].get(to_currency)
         else:
+            print(f"API Error: {response.status_code} - {response.text}")
             return None
 
-    except (requests.RequestException, KeyError):
+    except (requests.RequestException, KeyError) as e:
+        print(f"Request error: {e}")
         return None
 
 
