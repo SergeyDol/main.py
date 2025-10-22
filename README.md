@@ -160,3 +160,28 @@ def divide(a, b):
     return a / b
 
 divide(1, 0)  # Вывод в консоль: 2023-10-05 12:30:45 - divide error: ZeroDivisionError. Inputs: (1, 0), {}
+## 📁 Модуль file_reader.py
+
+Функции для чтения финансовых операций из различных форматов файлов.
+
+### `read_csv_file(file_path: str) -> List[Dict]`
+Читает CSV-файл и возвращает список транзакций.
+
+### `read_excel_file(file_path: str, sheet_name: str = 0) -> List[Dict]`  
+Читает Excel-файл и возвращает список транзакций.
+
+### `detect_file_type_and_read(file_path: str) -> List[Dict]`
+Автоматически определяет тип файла и читает данные соответствующим способом.
+
+**Примеры использования:**
+```python
+from src.file_reader import read_csv_file, read_excel_file
+
+# Чтение CSV файла
+csv_transactions = read_csv_file("data/transactions.csv")
+
+# Чтение Excel файла  
+excel_transactions = read_excel_file("data/transactions_excel.xlsx")
+
+# Автоматическое определение типа
+transactions = detect_file_type_and_read("data/operations.json")
