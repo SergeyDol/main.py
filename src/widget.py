@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any, Dict, List
 
 
 def mask_account_card(account_info: str) -> str:
@@ -65,3 +66,71 @@ def get_date(date_string: str) -> str:
     except (ValueError, TypeError):
         # В случае ошибки возвращаем исходную строку
         return date_string
+
+
+def mask_account_number(account: str) -> str:
+    """
+    Маскирует номер счета или карты.
+
+    Args:
+        account: Номер счета или карты
+
+    Returns:
+        str: Замаскированный номер
+    """
+    if not account:
+        return ""
+
+    if "счет" in account.lower():
+        # Для счетов: показываем последние 4 цифры
+        numbers = "".join(filter(str.isdigit, account))
+        if len(numbers) >= 4:
+            return f"**{numbers[-4:]}"
+    else:
+        # Для карт: показываем первые 6 и последние 4 цифры
+        numbers = "".join(filter(str.isdigit, account))
+        if len(numbers) >= 16:
+            return f"{numbers[:4]} {numbers[4:6]}** **** {numbers[-4:]}"
+
+    return account
+
+
+def display_transactions(transactions: List[Dict[str, Any]]) -> None:
+    """
+    Отображает список транзакций в удобочитаемом формате.
+
+    Args:
+        transactions: Список транзакций для отображения
+    """
+    if not transactions:
+        print("Не найдено ни одной транзакции, подходящей под ваши условия фильтрации")
+        return
+
+    print(f"Всего банковских операций в выборке: {len(transactions)}\n")
+
+    for transaction in transactions:
+        # Используем функцию get_date для форматирования даты
+        date_str = transaction.get("date", "")
+        formatted_date = get_date(date_str)
+
+        description = transaction.get("description", "")
+        from_account = transaction.get("from", "")
+        to_account = transaction.get("to", "")
+        amount = transaction.get("amount", "")
+        currency = transaction.get("currency", "")
+
+        print(f"{formatted_date} {description}")
+
+        if from_account:
+            # Используем mask_account_card вместо mask_account_number для лучшей обработки
+            masked_from = mask_account_card(from_account)
+            if to_account:
+                masked_to = mask_account_card(to_account)
+                print(f"{masked_from} -> {masked_to}")
+            else:
+                print(f"{masked_from}")
+        elif to_account:
+            masked_to = mask_account_card(to_account)
+            print(f"{masked_to}")
+
+        print(f"Сумма: {amount} {currency}\n")

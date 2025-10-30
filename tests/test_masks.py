@@ -13,7 +13,7 @@ class TestMasks:
             ("1234567890123456", "1234 56** **** 3456"),
             ("1111222233334444", "1111 22** **** 4444"),
             ("9999888877776666", "9999 88** **** 6666"),
-        ]
+        ],
     )
     def test_get_mask_card_number_valid(self, card_number, expected):
         """Тестирование корректных номеров карт"""
@@ -28,7 +28,7 @@ class TestMasks:
             "",  # пустая строка
             None,  # None
             1234567890123456,  # число вместо строки
-        ]
+        ],
     )
     def test_get_mask_card_number_invalid(self, invalid_card_number):
         """Тестирование некорректных номеров карт"""
@@ -42,7 +42,7 @@ class TestMasks:
             ("12345678", "**5678"),
             ("1234", "**1234"),
             ("1234567890123456", "**3456"),
-        ]
+        ],
     )
     def test_get_mask_account_valid(self, account_number, expected):
         """Тестирование корректных номеров счетов"""
@@ -56,7 +56,7 @@ class TestMasks:
             "",  # пустая строка
             None,  # None
             1234,  # число вместо строки
-        ]
+        ],
     )
     def test_get_mask_account_invalid(self, invalid_account_number):
         """Тестирование некорректных номеров счетов"""

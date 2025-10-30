@@ -1,9 +1,11 @@
-import pytest
 import logging
 import os
 import tempfile
+
+import pytest
+
+from src.masks import get_mask_account, get_mask_card_number
 from src.utils import read_json_file
-from src.masks import get_mask_card_number, get_mask_account
 
 
 class TestLoggingRequirements:
@@ -15,7 +17,7 @@ class TestLoggingRequirements:
 
         # Проверяем что логгер создан
         assert isinstance(logger, logging.Logger)
-        assert logger.name == 'utils'
+        assert logger.name == "utils"
 
         # Проверяем уровень логирования (не меньше DEBUG)
         assert logger.level <= logging.DEBUG
@@ -30,7 +32,7 @@ class TestLoggingRequirements:
 
         # Проверяем что логгер создан
         assert isinstance(logger, logging.Logger)
-        assert logger.name == 'masks'
+        assert logger.name == "masks"
 
         # Проверяем уровень логирования (не меньше DEBUG)
         assert logger.level <= logging.DEBUG
@@ -58,23 +60,23 @@ class TestLoggingRequirements:
         read_json_file("nonexistent.json")
 
         # Читаем последнюю запись
-        with open("logs/utils.log", 'r', encoding='utf-8') as f:
+        with open("logs/utils.log", "r", encoding="utf-8") as f:
             lines = f.readlines()
             if lines:
                 last_line = lines[-1]
 
                 # Проверяем что формат включает все требуемые поля
-                parts = last_line.strip().split(' - ')
+                parts = last_line.strip().split(" - ")
                 assert len(parts) >= 4
 
                 # Метка времени (должна содержать дату и время)
                 assert len(parts[0]) > 0
 
                 # Название модуля
-                assert parts[1] == 'utils'
+                assert parts[1] == "utils"
 
                 # Уровень серьезности
-                assert parts[2] in ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+                assert parts[2] in ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
 
                 # Сообщение
                 assert len(parts[3]) > 0
@@ -85,7 +87,8 @@ class TestLoggingRequirements:
         test_data = [{"id": 1, "amount": "100.50"}]
         test_file = tmp_path / "test.json"
         import json
-        with open(test_file, 'w') as f:
+
+        with open(test_file, "w") as f:
             json.dump(test_data, f)
 
         # Читаем файл
@@ -95,7 +98,7 @@ class TestLoggingRequirements:
         assert result == test_data
 
         # Проверяем что в логе есть запись об успехе
-        with open("logs/utils.log", 'r', encoding='utf-8') as f:
+        with open("logs/utils.log", "r", encoding="utf-8") as f:
             log_content = f.read()
             assert "Успешно прочитан JSON файл" in log_content
             assert "INFO" in log_content
@@ -109,7 +112,7 @@ class TestLoggingRequirements:
         assert result == []
 
         # Проверяем что в логе есть запись об ошибке с уровнем ERROR
-        with open("logs/utils.log", 'r', encoding='utf-8') as f:
+        with open("logs/utils.log", "r", encoding="utf-8") as f:
             log_content = f.read()
             assert "Файл не найден" in log_content
             assert "ERROR" in log_content
@@ -123,7 +126,7 @@ class TestLoggingRequirements:
         assert result == "1234 56** **** 3456"
 
         # Проверяем что в логе есть запись об успехе
-        with open("logs/masks.log", 'r', encoding='utf-8') as f:
+        with open("logs/masks.log", "r", encoding="utf-8") as f:
             log_content = f.read()
             assert "Успешно замаскирован номер карты" in log_content
             assert "INFO" in log_content
@@ -135,7 +138,7 @@ class TestLoggingRequirements:
             get_mask_card_number("123")
 
         # Проверяем что в логе есть запись об ошибке с уровнем ERROR
-        with open("logs/masks.log", 'r', encoding='utf-8') as f:
+        with open("logs/masks.log", "r", encoding="utf-8") as f:
             log_content = f.read()
             assert "ERROR" in log_content
             assert "Номер карты должен быть строкой из 16 цифр" in log_content

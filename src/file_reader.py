@@ -1,10 +1,12 @@
-import pandas as pd
-from typing import List, Dict, Any
 import logging
+from typing import Any, Dict, List
+
+import pandas as pd
+
 from .logger_config import setup_logger
 
 # Создаем логгер для модуля file_reader
-logger = setup_logger('file_reader', 'file_reader.log')
+logger = setup_logger("file_reader", "file_reader.log")
 
 
 def read_csv_file(file_path: str) -> List[Dict[str, Any]]:
@@ -25,7 +27,7 @@ def read_csv_file(file_path: str) -> List[Dict[str, Any]]:
         df = pd.read_csv(file_path)
 
         # Конвертируем DataFrame в список словарей
-        transactions = df.to_dict('records')
+        transactions = df.to_dict("records")
 
         logger.info(f"Успешно прочитан CSV файл: {file_path}. Найдено {len(transactions)} записей")
         return transactions
@@ -60,7 +62,7 @@ def read_excel_file(file_path: str, sheet_name: str = 0) -> List[Dict[str, Any]]
         df = pd.read_excel(file_path, sheet_name=sheet_name)
 
         # Конвертируем DataFrame в список словарей
-        transactions = df.to_dict('records')
+        transactions = df.to_dict("records")
 
         logger.info(f"Успешно прочитан Excel файл: {file_path}. Найдено {len(transactions)} записей")
         return transactions
@@ -88,12 +90,13 @@ def detect_file_type_and_read(file_path: str) -> List[Dict[str, Any]]:
     """
     logger.debug(f"Определение типа файла: {file_path}")
 
-    if file_path.lower().endswith('.csv'):
+    if file_path.lower().endswith(".csv"):
         return read_csv_file(file_path)
-    elif file_path.lower().endswith(('.xlsx', '.xls')):
+    elif file_path.lower().endswith((".xlsx", ".xls")):
         return read_excel_file(file_path)
-    elif file_path.lower().endswith('.json'):
+    elif file_path.lower().endswith(".json"):
         from .utils import read_json_file
+
         return read_json_file(file_path)
     else:
         logger.error(f"Неподдерживаемый формат файла: {file_path}")
