@@ -44,10 +44,11 @@ class TestLogDecorator:
 
     def test_log_to_file_success(self):
         """Тестирование логирования успешного выполнения в файл"""
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, encoding='utf-8') as temp_file:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, encoding="utf-8") as temp_file:
             temp_filename = temp_file.name
 
         try:
+
             @log(filename=temp_filename)
             def multiply(a, b):
                 return a * b
@@ -58,7 +59,7 @@ class TestLogDecorator:
             assert result == 12
 
             # Проверяем запись в файл
-            with open(temp_filename, 'r', encoding='utf-8') as f:
+            with open(temp_filename, "r", encoding="utf-8") as f:
                 content = f.read()
                 assert "multiply ok" in content
                 assert "error" not in content
@@ -70,10 +71,11 @@ class TestLogDecorator:
 
     def test_log_to_file_error(self):
         """Тестирование логирования ошибки в файл"""
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, encoding='utf-8') as temp_file:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, encoding="utf-8") as temp_file:
             temp_filename = temp_file.name
 
         try:
+
             @log(filename=temp_filename)
             def raise_value_error():
                 raise ValueError("Test error")
@@ -83,7 +85,7 @@ class TestLogDecorator:
                 raise_value_error()
 
             # Проверяем запись в файл
-            with open(temp_filename, 'r', encoding='utf-8') as f:
+            with open(temp_filename, "r", encoding="utf-8") as f:
                 content = f.read()
                 assert "raise_value_error error: ValueError" in content
                 assert "Inputs: (), {}" in content
@@ -120,12 +122,12 @@ class TestLogDecorator:
         # Проверяем сохранение метаданных
         assert test_func.__name__ == "test_func"
         assert test_func.__doc__ == "Test function for metadata preservation."
-        assert test_func.__annotations__ == {'a': int, 'b': int, 'return': int}
+        assert test_func.__annotations__ == {"a": int, "b": int, "return": int}
 
     def test_log_without_filename_and_with_filename(self, capsys):
         """Тестирование смешанного использования (с filename и без)"""
         # Создаем временный файл для второго теста
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, encoding='utf-8') as temp_file:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, encoding="utf-8") as temp_file:
             temp_filename = temp_file.name
 
         try:
@@ -153,7 +155,7 @@ class TestLogDecorator:
             assert "file_func" not in captured.out  # file_func пишет в файл, не в консоль
 
             # Проверяем запись в файл (только от file_func)
-            with open(temp_filename, 'r', encoding='utf-8') as f:
+            with open(temp_filename, "r", encoding="utf-8") as f:
                 content = f.read()
                 assert "file_func ok" in content
                 assert "console_func" not in content  # console_func пишет в консоль, не в файл

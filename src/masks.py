@@ -1,8 +1,9 @@
 import logging
+
 from .logger_config import setup_logger
 
 # Создаем логгер для модуля masks
-logger = setup_logger('masks', 'masks.log')
+logger = setup_logger("masks", "masks.log")
 
 
 def get_mask_card_number(card_number: str) -> str:

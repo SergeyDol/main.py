@@ -40,8 +40,7 @@ def log(filename: Optional[str] = None) -> Callable:
             except Exception as e:
                 # Формируем сообщение об ошибке
                 error_message = (
-                    f"{current_time} - {func_name} error: {type(e).__name__}. "
-                    f"Inputs: {args}, {kwargs}\n"
+                    f"{current_time} - {func_name} error: {type(e).__name__}. " f"Inputs: {args}, {kwargs}\n"
                 )
 
                 # Логируем в файл или консоль

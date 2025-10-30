@@ -14,62 +14,38 @@ class TestGenerators:
                 "id": 939719570,
                 "state": "EXECUTED",
                 "date": "2018-06-30T02:08:58.425572",
-                "operationAmount": {
-                    "amount": "9824.07",
-                    "currency": {
-                        "name": "USD",
-                        "code": "USD"
-                    }
-                },
+                "operationAmount": {"amount": "9824.07", "currency": {"name": "USD", "code": "USD"}},
                 "description": "Перевод организации",
                 "from": "Счет 75106830613657916952",
-                "to": "Счет 11776614605963066702"
+                "to": "Счет 11776614605963066702",
             },
             {
                 "id": 142264268,
                 "state": "EXECUTED",
                 "date": "2019-04-04T23:20:05.206878",
-                "operationAmount": {
-                    "amount": "79114.93",
-                    "currency": {
-                        "name": "USD",
-                        "code": "USD"
-                    }
-                },
+                "operationAmount": {"amount": "79114.93", "currency": {"name": "USD", "code": "USD"}},
                 "description": "Перевод со счета на счет",
                 "from": "Счет 19708645243227258542",
-                "to": "Счет 75651667383060284188"
+                "to": "Счет 75651667383060284188",
             },
             {
                 "id": 873106923,
                 "state": "EXECUTED",
                 "date": "2019-03-23T01:09:46.296404",
-                "operationAmount": {
-                    "amount": "43318.34",
-                    "currency": {
-                        "name": "руб.",
-                        "code": "RUB"
-                    }
-                },
+                "operationAmount": {"amount": "43318.34", "currency": {"name": "руб.", "code": "RUB"}},
                 "description": "Перевод со счета на счет",
                 "from": "Счет 44812258784861134719",
-                "to": "Счет 74489636417521191160"
+                "to": "Счет 74489636417521191160",
             },
             {
                 "id": 895315941,
                 "state": "EXECUTED",
                 "date": "2018-08-19T04:27:37.904916",
-                "operationAmount": {
-                    "amount": "56883.54",
-                    "currency": {
-                        "name": "USD",
-                        "code": "USD"
-                    }
-                },
+                "operationAmount": {"amount": "56883.54", "currency": {"name": "USD", "code": "USD"}},
                 "description": "Перевод с карты на карту",
                 "from": "Visa Classic 6831982476737658",
-                "to": "Visa Platinum 8990922113665229"
-            }
+                "to": "Visa Platinum 8990922113665229",
+            },
         ]
 
     # Тесты для filter_by_currency
@@ -77,10 +53,7 @@ class TestGenerators:
         """Тестирование фильтрации по USD"""
         usd_transactions = list(filter_by_currency(sample_transactions, "USD"))
         assert len(usd_transactions) == 3
-        assert all(
-            transaction["operationAmount"]["currency"]["code"] == "USD"
-            for transaction in usd_transactions
-        )
+        assert all(transaction["operationAmount"]["currency"]["code"] == "USD" for transaction in usd_transactions)
 
     def test_filter_by_currency_rub(self, sample_transactions):
         """Тестирование фильтрации по RUB"""
@@ -116,7 +89,7 @@ class TestGenerators:
             "Перевод организации",
             "Перевод со счета на счет",
             "Перевод со счета на счет",
-            "Перевод с карты на карту"
+            "Перевод с карты на карту",
         ]
         assert descriptions == expected_descriptions
 
@@ -132,25 +105,24 @@ class TestGenerators:
         assert next(generator) == "Перевод со счета на счет"
 
     # Тесты для card_number_generator
-    @pytest.mark.parametrize("start, end, expected", [
-        (1, 3, [
-            "0000 0000 0000 0001",
-            "0000 0000 0000 0002",
-            "0000 0000 0000 0003"
-        ]),
-        (9999999999999995, 9999999999999999, [
-            "9999 9999 9999 9995",
-            "9999 9999 9999 9996",
-            "9999 9999 9999 9997",
-            "9999 9999 9999 9998",
-            "9999 9999 9999 9999"
-        ]),
-        (123, 125, [
-            "0000 0000 0000 0123",
-            "0000 0000 0000 0124",
-            "0000 0000 0000 0125"
-        ])
-    ])
+    @pytest.mark.parametrize(
+        "start, end, expected",
+        [
+            (1, 3, ["0000 0000 0000 0001", "0000 0000 0000 0002", "0000 0000 0000 0003"]),
+            (
+                9999999999999995,
+                9999999999999999,
+                [
+                    "9999 9999 9999 9995",
+                    "9999 9999 9999 9996",
+                    "9999 9999 9999 9997",
+                    "9999 9999 9999 9998",
+                    "9999 9999 9999 9999",
+                ],
+            ),
+            (123, 125, ["0000 0000 0000 0123", "0000 0000 0000 0124", "0000 0000 0000 0125"]),
+        ],
+    )
     def test_card_number_generator_range(self, start, end, expected):
         """Тестирование генератора номеров карт в различных диапазонах"""
         result = list(card_number_generator(start, end))
