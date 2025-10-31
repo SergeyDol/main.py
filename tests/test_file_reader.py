@@ -1,9 +1,8 @@
 import os
 import tempfile
-from unittest.mock import MagicMock, mock_open, patch
+from unittest.mock import MagicMock, patch
 
 import pandas as pd
-import pytest
 
 from src.file_reader import detect_file_type_and_read, read_csv_file, read_excel_file
 

@@ -1,13 +1,14 @@
 import json
-import pandas as pd
 import re
-import logging
 from collections import Counter
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+
+import pandas as pd
+
 from .logger_config import setup_logger
 
 # Создаем логгер для модуля utils
-logger = setup_logger('utils', 'utils.log')
+logger = setup_logger("utils", "utils.log")
 
 
 def read_json_file(file_path: str) -> List[Dict[str, Any]]:
@@ -24,7 +25,7 @@ def read_json_file(file_path: str) -> List[Dict[str, Any]]:
     logger.debug(f"Попытка чтения JSON файла: {file_path}")
 
     try:
-        with open(file_path, 'r', encoding='utf-8') as file:
+        with open(file_path, "r", encoding="utf-8") as file:
             data = json.load(file)
 
         # Проверяем, что данные являются списком
@@ -63,7 +64,7 @@ def load_csv_transactions(file_path: str) -> List[Dict[str, Any]]:
         df = pd.read_csv(file_path)
 
         # Преобразуем DataFrame в список словарей
-        transactions = df.to_dict('records')
+        transactions = df.to_dict("records")
 
         logger.info(f"Успешно загружено {len(transactions)} транзакций из CSV файла")
         return transactions
@@ -96,7 +97,7 @@ def load_excel_transactions(file_path: str) -> List[Dict[str, Any]]:
         df = pd.read_excel(file_path)
 
         # Преобразуем DataFrame в список словарей
-        transactions = df.to_dict('records')
+        transactions = df.to_dict("records")
 
         logger.info(f"Успешно загружено {len(transactions)} транзакций из Excel файла")
         return transactions
@@ -133,7 +134,7 @@ def process_bank_search(data: List[Dict[str, Any]], search: str) -> List[Dict[st
     pattern = re.compile(re.escape(search), re.IGNORECASE)
 
     for transaction in data:
-        description = transaction.get('description', '')
+        description = transaction.get("description", "")
         if pattern.search(description):
             result.append(transaction)
 
@@ -164,7 +165,7 @@ def process_bank_operations(data: List[Dict[str, Any]], categories: List[str]) -
     # Собираем все описания
     descriptions = []
     for transaction in data:
-        description = transaction.get('description', '').lower()
+        description = transaction.get("description", "").lower()
         if description:
             descriptions.append(description)
 

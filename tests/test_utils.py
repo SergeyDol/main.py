@@ -2,8 +2,6 @@ import json
 import os
 import tempfile
 
-import pytest
-
 from src.utils import read_json_file
 
 
