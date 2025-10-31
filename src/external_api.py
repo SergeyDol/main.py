@@ -23,7 +23,7 @@ def get_exchange_rate(from_currency: str, to_currency: str = "RUB") -> Optional[
     if not api_key or api_key == "your_api_key_here":
         raise ValueError("API key not found or set to default. " "Please set EXCHANGE_RATE_API_KEY in your .env file")
 
-    url = f"https://api.apilayer.com/exchangerates_data/latest"
+    url = "https://api.apilayer.com/exchangerates_data/latest"
 
     try:
         response = requests.get(

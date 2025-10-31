@@ -1,10 +1,9 @@
 import logging
 import os
-import tempfile
 
 import pytest
 
-from src.masks import get_mask_account, get_mask_card_number
+from src.masks import get_mask_card_number
 from src.utils import read_json_file
 
 

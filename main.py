@@ -1,7 +1,9 @@
 from typing import Any, Dict, List
-from utils.file_operations import load_csv_transactions, load_json_transactions, load_excel_transactions
-from utils.transaction_operations import process_bank_operations, process_bank_search
+
 from widgets.transaction_widgets import display_transactions
+
+from utils.file_operations import load_csv_transactions, load_excel_transactions, load_json_transactions
+from utils.transaction_operations import process_bank_operations, process_bank_search
 
 
 def filter_by_status(transactions: List[Dict[str, Any]], status: str) -> List[Dict[str, Any]]:
@@ -165,8 +167,7 @@ def main() -> None:
 
     # Поиск по описанию
     search_choice = get_user_choice(
-        "\nОтфильтровать список транзакций по определенному слову в описании? Да/Нет: ",
-        ["да", "нет", "д", "н"]
+        "\nОтфильтровать список транзакций по определенному слову в описании? Да/Нет: ", ["да", "нет", "д", "н"]
     )
 
     if search_choice in ["да", "д"]:
@@ -176,10 +177,7 @@ def main() -> None:
             print(f'Применен поиск по слову: "{search_word}"')
 
     # Дополнительная функциональность: подсчет операций по категориям
-    count_choice = get_user_choice(
-        "\nПоказать статистику по категориям операций? Да/Нет: ",
-        ["да", "нет", "д", "н"]
-    )
+    count_choice = get_user_choice("\nПоказать статистику по категориям операций? Да/Нет: ", ["да", "нет", "д", "н"])
 
     if count_choice in ["да", "д"]:
         # Автоматически определяем категории из описаний
