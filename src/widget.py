@@ -1,6 +1,37 @@
 from datetime import datetime
 from typing import Any, Dict, List
+from typing import List, Dict, Any
 
+
+def filter_by_state(transactions: List[Dict[str, Any]], state: str) -> List[Dict[str, Any]]:
+    """
+    Фильтрует транзакции по статусу.
+
+    Args:
+        transactions: Список транзакций
+        state: Статус для фильтрации
+
+    Returns:
+        Отфильтрованный список транзакций
+    """
+    return [t for t in transactions if t.get("state", "").upper() == state.upper()]
+
+
+def sort_transactions_by_date(transactions: List[Dict[str, Any]], reverse: bool = False) -> List[Dict[str, Any]]:
+    """
+    Сортирует транзакции по дате.
+
+    Args:
+        transactions: Список транзакций
+        reverse: Если True - по убыванию, False - по возрастанию
+
+    Returns:
+        Отсортированный список транзакций
+    """
+    def get_date(transaction):
+        return transaction.get("date", "")
+
+    return sorted(transactions, key=get_date, reverse=reverse)
 
 def mask_account_card(account_info: str) -> str:
     """Маскирует номер карты или счета в переданной строке."""

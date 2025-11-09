@@ -1,43 +1,10 @@
-import os
 from typing import List, Dict, Any
 
 from .file_reader import detect_file_type_and_read
 from .masks import get_mask_card_number, get_mask_account
-from .utils import process_bank_search, process_bank_operations
+from .utils import process_bank_search
 from .external_api import convert_amount_to_rub
-
-
-def filter_by_status(transactions: List[Dict[str, Any]], status: str) -> List[Dict[str, Any]]:
-    """
-    Фильтрует транзакции по статусу.
-
-    Args:
-        transactions: Список транзакций
-        status: Статус для фильтрации
-
-    Returns:
-        Отфильтрованный список транзакций
-    """
-    status_lower = status.lower()
-    return [t for t in transactions if t.get("state", "").lower() == status_lower]
-
-
-def sort_transactions(transactions: List[Dict[str, Any]], reverse: bool = False) -> List[Dict[str, Any]]:
-    """
-    Сортирует транзакции по дате.
-
-    Args:
-        transactions: Список транзакций
-        reverse: Если True - по убыванию, False - по возрастанию
-
-    Returns:
-        Отсортированный список транзакций
-    """
-
-    def get_date(transaction):
-        return transaction.get("date", "")
-
-    return sorted(transactions, key=get_date, reverse=reverse)
+from .widget import filter_by_state, sort_transactions_by_date
 
 
 def filter_rub_transactions(transactions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -135,22 +102,20 @@ def main():
 
     choice = input().strip()
 
-    file_type = ""
-    if choice == "1":
-        file_type = "JSON"
-        print("Для обработки выбран JSON-файл.")
-        file_path = input("Введите путь к JSON-файлу: ").strip()
-    elif choice == "2":
-        file_type = "CSV"
-        print("Для обработки выбран CSV-файл.")
-        file_path = input("Введите путь к CSV-файлу: ").strip()
-    elif choice == "3":
-        file_type = "XLSX"
-        print("Для обработки выбран XLSX-файл.")
-        file_path = input("Введите путь к XLSX-файлу: ").strip()
-    else:
+    file_paths = {
+        "1": "data/operations.json",
+        "2": "data/transactions.csv",
+        "3": "data/transactions.xlsx"
+    }
+
+    if choice not in file_paths:
         print("Неверный выбор.")
         return
+
+    file_path = file_paths[choice]
+    file_type = "JSON" if choice == "1" else "CSV" if choice == "2" else "XLSX"
+
+    print(f"Для обработки выбран {file_type}-файл.")
 
     # Чтение файла
     transactions = detect_file_type_and_read(file_path)
@@ -166,7 +131,7 @@ def main():
         status = input().strip().upper()
 
         if status in available_statuses:
-            filtered_transactions = filter_by_status(transactions, status)
+            filtered_transactions = filter_by_state(transactions, status)
             print(f"Операции отфильтрованы по статусу '{status}'")
             break
         else:
@@ -177,7 +142,7 @@ def main():
     if sort_choice in ["да", "д", "yes", "y"]:
         sort_order = input("Отсортировать по возрастанию или по убыванию? ").strip().lower()
         reverse = sort_order in ["по убыванию", "убыванию", "убывание", "desc", "reverse"]
-        filtered_transactions = sort_transactions(filtered_transactions, reverse)
+        filtered_transactions = sort_transactions_by_date(filtered_transactions, reverse)
 
     # Фильтрация рублевых транзакций
     rub_choice = input("\nВыводить только рублевые транзакции? Да/Нет: ").strip().lower()
