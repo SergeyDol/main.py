@@ -7,8 +7,7 @@ from src.widget import (
     filter_by_state,
     filter_rub_transactions,
     search_transactions_by_description,
-    sort_transactions_by_date,
-    display_transaction_debug_info
+    sort_transactions_by_date
 )
 from src.external_api import convert_amount_to_rub
 from src.logger_config import setup_logger
@@ -33,23 +32,17 @@ def get_file_choice() -> str:
 
 
 def get_file_path(choice: str) -> str:
-    """Возвращает путь к файлу в зависимости от выбора."""
+    """Возвращает путь к файлу в соответствии с заданием."""
     file_paths = {
-        "1": "data/transactions.json",  # Путь к JSON файлу
-        "2": "data/transactions.csv",  # Путь к CSV файлу
-        "3": "data/transactions.xlsx"  # Путь к XLSX файлу
+        "1": "data/operations.json",  # Из предыдущих заданий
+        "2": "data/transactions.csv",  # CSV файл
+        "3": "data/transactions.xlsx"  # Excel файл
     }
 
     file_path = file_paths[choice]
 
-    # Проверяем существование файла
     if not os.path.exists(file_path):
-        # Если файла нет в data/, пробуем найти в корне
-        alt_path = file_path.replace("data/", "")
-        if os.path.exists(alt_path):
-            return alt_path
-        else:
-            raise FileNotFoundError(f"Файл {file_path} не найден. Убедитесь, что файл добавлен в проект.")
+        raise FileNotFoundError(f"Файл {file_path} не найден.")
 
     return file_path
 
@@ -79,8 +72,7 @@ def get_yes_no_input(prompt: str) -> bool:
 
 def get_search_term() -> Optional[str]:
     """Получает поисковый запрос от пользователя."""
-    print("\nОтфильтровать список транзакций по определенному слову в описании?")
-    if get_yes_no_input("Да/Нет: "):
+    if get_yes_no_input("Отфильтровать список транзакций по определенному слову в описании? Да/Нет: "):
         return input("Введите слово для поиска в описании: ").strip()
     return None
 
@@ -93,32 +85,24 @@ def process_transactions(transactions: List[Dict[str, Any]]) -> List[Dict[str, A
     # Фильтрация по статусу
     state = get_filter_state()
     filtered_transactions = filter_by_state(transactions, state)
-    print(f"Операции отфильтрованы по статусу '{state}'")
-
-    # Для отладки - покажем что мы получили
-    print(f"Найдено транзакций после фильтрации по статусу: {len(filtered_transactions)}")
-
-    if filtered_transactions:
-        display_transaction_debug_info(filtered_transactions[:1])  # Показываем только первую для отладки
+    logger.info(f"Операции отфильтрованы по статусу '{state}', найдено {len(filtered_transactions)} транзакций")
 
     # Сортировка по дате
-    print("\nОтсортировать операции по дате?")
-    if get_yes_no_input("Да/Нет: "):
+    if get_yes_no_input("Отсортировать операции по дате? Да/Нет: "):
         reverse = get_yes_no_input("Сортировать по убыванию (новые сначала)? Да/Нет: ")
         filtered_transactions = sort_transactions_by_date(filtered_transactions, reverse)
-        print("Операции отсортированы по дате")
+        logger.info("Операции отсортированы по дате")
 
     # Фильтрация рублевых транзакций
-    print("\nВыводить только рублевые транзакции?")
-    if get_yes_no_input("Да/Нет: "):
+    if get_yes_no_input("Выводить только рублевые транзакции? Да/Нет: "):
         filtered_transactions = filter_rub_transactions(filtered_transactions)
-        print("Выводятся только рублевые транзакции")
+        logger.info("Выводятся только рублевые транзакции")
 
     # Поиск по описанию
     search_term = get_search_term()
     if search_term:
         filtered_transactions = search_transactions_by_description(filtered_transactions, search_term)
-        print(f"Выполнен поиск по слову '{search_term}'")
+        logger.info(f"Выполнен поиск по слову '{search_term}'")
 
     return filtered_transactions
 
@@ -128,24 +112,21 @@ def convert_transaction_amounts(transactions: List[Dict[str, Any]]) -> List[Dict
     converted_transactions = []
 
     for transaction in transactions:
-        # Создаем копию транзакции чтобы не изменять оригинал
         converted_transaction = transaction.copy()
 
         try:
-            # Конвертируем сумму в рубли
             amount_rub = convert_amount_to_rub(transaction)
 
             # Обновляем информацию о сумме
             if "operationAmount" in converted_transaction:
-                converted_transaction["operationAmount"]["amount"] = str(round(amount_rub, 2))
+                converted_transaction["operationAmount"]["amount"] = f"{amount_rub:.2f}"
                 converted_transaction["operationAmount"]["currency"] = {"code": "RUB", "name": "руб."}
             else:
-                converted_transaction["amount"] = str(round(amount_rub, 2))
+                converted_transaction["amount"] = f"{amount_rub:.2f}"
                 converted_transaction["currency"] = "RUB"
 
         except Exception as e:
-            logger.warning(f"Не удалось конвертировать сумму для транзакции {transaction.get('id', 'unknown')}: {e}")
-            # Оставляем оригинальную сумму если конвертация не удалась
+            logger.warning(f"Не удалось конвертировать сумму для транзакции: {e}")
 
         converted_transactions.append(converted_transaction)
 
@@ -169,16 +150,12 @@ def main():
             print("Не удалось прочитать транзакции из файла или файл пуст.")
             return
 
-        print(f"Прочитано транзакций из файла: {len(transactions)}")
-
-        # Обрабатываем транзакции согласно выбору пользователя
+        # Обрабатываем транзакции
         processed_transactions = process_transactions(transactions)
 
         # Конвертируем суммы в рубли если нужно
-        print("\nКонвертировать все суммы в рубли?")
-        if get_yes_no_input("Да/Нет: "):
+        if get_yes_no_input("Конвертировать все суммы в рубли? Да/Нет: "):
             processed_transactions = convert_transaction_amounts(processed_transactions)
-            print("Суммы конвертированы в рубли")
 
         # Выводим результат
         print("\nРаспечатываю итоговый список транзакций...")
@@ -186,15 +163,10 @@ def main():
 
     except FileNotFoundError as e:
         print(f"Ошибка: {e}")
-        print("Пожалуйста, добавьте файлы транзакций в проект:")
-        print("- transactions.json")
-        print("- transactions.csv")
-        print("- transactions.xlsx")
-        print("Разместите их в папке 'data/' или в корне проекта.")
     except KeyboardInterrupt:
         print("\n\nПрограмма прервана пользователем.")
     except Exception as e:
-        logger.error(f"Критическая ошибка в работе программы: {e}")
+        logger.error(f"Критическая ошибка: {e}")
         print(f"Произошла ошибка: {e}")
 
 
