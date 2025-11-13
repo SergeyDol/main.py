@@ -8,7 +8,7 @@ from src.widget import (
     filter_rub_transactions,
     search_transactions_by_description,
     sort_transactions_by_date,
-    display_transaction_debug_info  # Для отладки
+    display_transaction_debug_info
 )
 from src.external_api import convert_amount_to_rub
 from src.logger_config import setup_logger
@@ -33,30 +33,25 @@ def get_file_choice() -> str:
 
 
 def get_file_path(choice: str) -> str:
-    """Получает путь к файлу от пользователя."""
-    file_types = {
-        "1": ("JSON", ".json"),
-        "2": ("CSV", ".csv"),
-        "3": ("XLSX", ".xlsx")
+    """Возвращает путь к файлу в зависимости от выбора."""
+    file_paths = {
+        "1": "data/transactions.json",  # Путь к JSON файлу
+        "2": "data/transactions.csv",  # Путь к CSV файлу
+        "3": "data/transactions.xlsx"  # Путь к XLSX файлу
     }
 
-    file_type, extension = file_types[choice]
+    file_path = file_paths[choice]
 
-    while True:
-        file_path = input(f"Введите путь к {file_type}-файлу: ").strip()
-
-        if not file_path:
-            print("Путь не может быть пустым.")
-            continue
-
-        # Добавляем расширение если его нет
-        if not file_path.lower().endswith(extension):
-            file_path += extension
-
-        if os.path.exists(file_path):
-            return file_path
+    # Проверяем существование файла
+    if not os.path.exists(file_path):
+        # Если файла нет в data/, пробуем найти в корне
+        alt_path = file_path.replace("data/", "")
+        if os.path.exists(alt_path):
+            return alt_path
         else:
-            print(f"Файл '{file_path}' не найден. Попробуйте еще раз.")
+            raise FileNotFoundError(f"Файл {file_path} не найден. Убедитесь, что файл добавлен в проект.")
+
+    return file_path
 
 
 def get_filter_state() -> str:
@@ -104,7 +99,7 @@ def process_transactions(transactions: List[Dict[str, Any]]) -> List[Dict[str, A
     print(f"Найдено транзакций после фильтрации по статусу: {len(filtered_transactions)}")
 
     if filtered_transactions:
-        display_transaction_debug_info(filtered_transactions)  # Отладочная информация
+        display_transaction_debug_info(filtered_transactions[:1])  # Показываем только первую для отладки
 
     # Сортировка по дате
     print("\nОтсортировать операции по дате?")
@@ -142,10 +137,10 @@ def convert_transaction_amounts(transactions: List[Dict[str, Any]]) -> List[Dict
 
             # Обновляем информацию о сумме
             if "operationAmount" in converted_transaction:
-                converted_transaction["operationAmount"]["amount"] = str(amount_rub)
+                converted_transaction["operationAmount"]["amount"] = str(round(amount_rub, 2))
                 converted_transaction["operationAmount"]["currency"] = {"code": "RUB", "name": "руб."}
             else:
-                converted_transaction["amount"] = str(amount_rub)
+                converted_transaction["amount"] = str(round(amount_rub, 2))
                 converted_transaction["currency"] = "RUB"
 
         except Exception as e:
@@ -165,7 +160,7 @@ def main():
         file_path = get_file_path(choice)
 
         file_types = {"1": "JSON", "2": "CSV", "3": "XLSX"}
-        print(f"\nДля обработки выбран {file_types[choice]}-файл: {file_path}")
+        print(f"\nДля обработки выбран {file_types[choice]}-файл.")
 
         # Читаем транзакции из файла
         transactions = detect_file_type_and_read(file_path)
@@ -189,6 +184,13 @@ def main():
         print("\nРаспечатываю итоговый список транзакций...")
         display_transactions(processed_transactions)
 
+    except FileNotFoundError as e:
+        print(f"Ошибка: {e}")
+        print("Пожалуйста, добавьте файлы транзакций в проект:")
+        print("- transactions.json")
+        print("- transactions.csv")
+        print("- transactions.xlsx")
+        print("Разместите их в папке 'data/' или в корне проекта.")
     except KeyboardInterrupt:
         print("\n\nПрограмма прервана пользователем.")
     except Exception as e:
