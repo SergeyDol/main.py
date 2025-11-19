@@ -1,30 +1,55 @@
-from .logger_config import setup_logger
+def mask_account_card(account_info: str) -> str:
+    """Маскирует номер карты или счета в переданной строке."""
+    if not account_info or not isinstance(account_info, str):
+        return account_info or ""
 
-# Создаем логгер для модуля masks
-logger = setup_logger("masks", "masks.log")
+    # Если вся строка состоит из 16 цифр - это номер карты
+    if account_info.isdigit() and len(account_info) == 16:
+        return f"{account_info[:4]} {account_info[4:6]}** **** {account_info[-4:]}"
+
+    parts = account_info.split()
+    if not parts:
+        return account_info
+
+    number_part = parts[-1]
+
+    # Если последняя часть не состоит из цифр, возвращаем как есть
+    if not number_part.isdigit():
+        return account_info
+
+    name_part = " ".join(parts[:-1])
+
+    # Определяем тип на основе названия
+    if name_part:
+        if any(keyword in name_part.lower() for keyword in ["счет", "account"]):
+            # Это счет
+            if len(number_part) >= 4:
+                return f"{name_part} **{number_part[-4:]}"
+            return account_info
+        else:
+            # Это карта
+            if len(number_part) == 16:
+                return f"{name_part} {number_part[:4]} {number_part[4:6]}** **** {number_part[-4:]}"
+            return account_info
+    else:
+        # Если нет названия, определяем по длине номера
+        if len(number_part) == 16:
+            return f"{number_part[:4]} {number_part[4:6]}** **** {number_part[-4:}"
+            elif len(number_part) >= 4:
+            return f"**{number_part[-4:]}"
+        return account_info
 
 
-def get_mask_card_number(card_number: str) -> str:
-    """Маскирует номер карты в формате XXXX XX** **** XXXX."""
-    logger.debug(f"Попытка маскировки номера карты: {card_number}")
+def get_date(date_string: str) -> str:
+    """Преобразует дату из формата 'YYYY-MM-DDThh:mm:ss.ssssss' в 'DD.MM.YYYY'."""
+    from datetime import datetime
 
-    if not isinstance(card_number, str) or not card_number.isdigit() or len(card_number) != 16:
-        logger.error(f"Номер карты должен быть строкой из 16 цифр. Получено: {card_number}")
-        raise ValueError("Номер карты должен быть строкой из 16 цифр")
+    if not date_string or not isinstance(date_string, str):
+        return ""
 
-    masked_card = f"{card_number[:4]} {card_number[4:6]}** **** {card_number[-4:]}"
-    logger.info(f"Успешно замаскирован номер карты: {card_number} -> {masked_card}")
-    return masked_card
-
-
-def get_mask_account(account_number: str) -> str:
-    """Маскирует номер счёта в формате **XXXX."""
-    logger.debug(f"Попытка маскировки номера счета: {account_number}")
-
-    if not isinstance(account_number, str) or not account_number.isdigit() or len(account_number) < 4:
-        logger.error(f"Номер счёта должен быть строкой с минимум 4 цифрами. Получено: {account_number}")
-        raise ValueError("Номер счёта должен быть строкой с минимум 4 цифрами")
-
-    masked_account = f"**{account_number[-4:]}"
-    logger.info(f"Успешно замаскирован номер счета: {account_number} -> {masked_account}")
-    return masked_account
+    try:
+        clean_date = date_string.replace("Z", "+00:00")
+        date_object = datetime.fromisoformat(clean_date)
+        return date_object.strftime("%d.%m.%Y")
+    except (ValueError, TypeError):
+        return date_string
