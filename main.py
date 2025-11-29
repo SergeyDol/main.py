@@ -98,7 +98,7 @@ def display_transactions(transactions: List[Dict[str, Any]]) -> None:
     print(f"Всего банковских операций в выборке: {len(transactions)}\n")
 
     for transaction in transactions:
-        # Форматируем дату
+        # Форматируем дату с помощью функции из masks.py
         date_str = transaction.get("date", "")
         formatted_date = get_date(date_str)
 
@@ -109,8 +109,10 @@ def display_transactions(transactions: List[Dict[str, Any]]) -> None:
         # Получаем сумму и валюту
         amount, currency = get_transaction_amount(transaction)
 
+        # Выводим информацию о транзакции
         print(f"{formatted_date} {description}")
 
+        # Маскируем номера карт/счетов с помощью функции из masks.py
         if from_account:
             masked_from = mask_account_card(from_account)
             if to_account:
