@@ -1,48 +1,5 @@
-from datetfrom datetime import datetime
+from datetime import datetime
 from typing import Any, Dict, List
-
-
-def filter_by_state(transactions: List[Dict[str, Any]], state: str) -> List[Dict[str, Any]]:
-    """
-    Фильтрует транзакции по статусу.
-
-    Args:
-        transactions: Список транзакций
-        state: Статус для фильтрации
-
-    Returns:
-        Отфильтрованный список транзакций
-    """
-    if not transactions:
-        return []
-
-    filtered_transactions = []
-    for t in transactions:
-        # Приводим к строке и верхнему регистру для сравнения
-        transaction_state = str(t.get("state", "")).upper().strip()
-        target_state = state.upper().strip()
-
-        if transaction_state == target_state:
-            filtered_transactions.append(t)
-
-    return filtered_transactions
-
-
-def sort_transactions_by_date(transactions: List[Dict[str, Any]], reverse: bool = False) -> List[Dict[str, Any]]:
-    """
-    Сортирует транзакции по дате.
-
-    Args:
-        transactions: Список транзакций
-        reverse: Если True - по убыванию, False - по возрастанию
-
-    Returns:
-        Отсортированный список транзакций
-    """
-    def get_date(transaction):
-        return transaction.get("date", "")
-
-    return sorted(transactions, key=get_date, reverse=reverse)
 
 
 def mask_account_card(account_info: str) -> str:
@@ -66,9 +23,8 @@ def mask_account_card(account_info: str) -> str:
 
     name_part = " ".join(parts[:-1])
 
-    # Определяем тип на основе названия или длины номера
+    # Определяем тип на основе названия
     if name_part:
-        # Если есть название, проверяем ключевые слова для счета
         if any(keyword in name_part.lower() for keyword in ["счет", "account"]):
             # Это счет
             if len(number_part) >= 4:
@@ -90,82 +46,66 @@ def mask_account_card(account_info: str) -> str:
 
 def get_date(date_string: str) -> str:
     """Преобразует дату из формата 'YYYY-MM-DDThh:mm:ss.ssssss' в 'DD.MM.YYYY'."""
-    # Явная проверка на None и нестроковые значения
-    if date_string is None:
-        return ""
-
-    if not isinstance(date_string, str):
-        return ""
-
-    # Проверка на пустую строку
-    if not date_string.strip():
+    if not date_string or not isinstance(date_string, str):
         return ""
 
     try:
-        # Обработка даты
         clean_date = date_string.replace("Z", "+00:00")
         date_object = datetime.fromisoformat(clean_date)
         return date_object.strftime("%d.%m.%Y")
     except (ValueError, TypeError):
-        # В случае ошибки возвращаем исходную строку
         return date_string
 
 
-def mask_account_number(account: str) -> str:
-    """
-    Маскирует номер счета или карты.
+def get_transaction_amount(transaction: Dict[str, Any]) -> tuple:
+    """Извлекает сумму и валюту из транзакции."""
+    operation_amount = transaction.get("operationAmount", {})
 
-    Args:
-        account: Номер счета или карты
-
-    Returns:
-        str: Замаскированный номер
-    """
-    if not account:
-        return ""
-
-    if "счет" in account.lower():
-        # Для счетов: показываем последние 4 цифры
-        numbers = "".join(filter(str.isdigit, account))
-        if len(numbers) >= 4:
-            return f"**{numbers[-4:]}"
+    if isinstance(operation_amount, dict):
+        amount = operation_amount.get("amount", "0.00")
+        currency_info = operation_amount.get("currency", {})
+        if isinstance(currency_info, dict):
+            currency = currency_info.get("name", "")
+        else:
+            currency = str(currency_info)
     else:
-        # Для карт: показываем первые 6 и последние 4 цифры
-        numbers = "".join(filter(str.isdigit, account))
-        if len(numbers) >= 16:
-            return f"{numbers[:4]} {numbers[4:6]}** **** {numbers[-4:]}"
+        amount = transaction.get("amount", "0.00")
+        currency = transaction.get("currency", "")
 
-    return account
+    # Форматируем сумму
+    try:
+        amount = f"{float(amount):.2f}"
+    except (ValueError, TypeError):
+        amount = str(amount)
+
+    return amount, currency
 
 
 def display_transactions(transactions: List[Dict[str, Any]]) -> None:
-    """
-    Отображает список транзакций в удобочитаемом формате.
-
-    Args:
-        transactions: Список транзакций для отображения
-    """
+    """Отображает список транзакций."""
     if not transactions:
-        print("Не найдено ни одной транзакции, подходящей под ваши условия фильтрации")
+        print("Не найдено транзакций, подходящих под условия фильтрации")
         return
 
     print(f"Всего банковских операций в выборке: {len(transactions)}\n")
 
     for transaction in transactions:
-        # Используем функцию get_date для форматирования даты
+        # Форматируем дату
         date_str = transaction.get("date", "")
         formatted_date = get_date(date_str)
 
         description = transaction.get("description", "")
         from_account = transaction.get("from", "")
         to_account = transaction.get("to", "")
-        amount = transaction.get("amount", "")
-        currency = transaction.get("currency", "")
 
+        # Получаем сумму и валюту
+        amount, currency = get_transaction_amount(transaction)
+
+        # Выводим информацию о транзакции
         print(f"{formatted_date} {description}")
 
+        # Маскируем номера карт/счетов
         if from_account:
-            # Используем mask_account_card вместо mask_account_number для лучшей обработки
             masked_from = mask_account_card(from_account)
             if to_account:
                 masked_to = mask_account_card(to_account)
@@ -177,77 +117,3 @@ def display_transactions(transactions: List[Dict[str, Any]]) -> None:
             print(f"{masked_to}")
 
         print(f"Сумма: {amount} {currency}\n")
-
-
-def display_transaction_debug_info(transactions: List[Dict[str, Any]]) -> None:
-    """
-    Отладочная функция для вывода информации о транзакциях.
-
-    Args:
-        transactions: Список транзакций для отладки
-    """
-    if not transactions:
-        print("Нет транзакций для отображения")
-        return
-
-    print(f"Всего транзакций: {len(transactions)}")
-    print("Структура первой транзакции:")
-    print(transactions[0])
-    print("Доступные поля:")
-    for key, value in transactions[0].items():
-        print(f"  {key}: {value} (тип: {type(value)})")
-
-
-def filter_rub_transactions(transactions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """
-    Фильтрует рублевые транзакции.
-
-    Args:
-        transactions: Список транзакций
-
-    Returns:
-        Список рублевых транзакций
-    """
-    if not transactions:
-        return []
-
-    rub_transactions = []
-    for transaction in transactions:
-        # Проверяем разные возможные структуры данных
-        operation_amount = transaction.get("operationAmount", {})
-        if isinstance(operation_amount, dict):
-            currency = operation_amount.get("currency", {})
-            if isinstance(currency, dict):
-                currency_code = currency.get("code", "")
-            else:
-                currency_code = str(currency)
-        else:
-            currency_code = transaction.get("currency", "")
-
-        if str(currency_code).upper() == "RUB":
-            rub_transactions.append(transaction)
-
-    return rub_transactions
-
-
-def search_transactions_by_description(transactions: List[Dict[str, Any]], search_term: str) -> List[Dict[str, Any]]:
-    """
-    Ищет транзакции по ключевому слову в описании.
-
-    Args:
-        transactions: Список транзакций
-        search_term: Ключевое слово для поиска
-
-    Returns:
-        Список найденных транзакций
-    """
-    if not transactions or not search_term:
-        return []
-
-    found_transactions = []
-    for transaction in transactions:
-        description = str(transaction.get("description", "")).lower()
-        if search_term.lower() in description:
-            found_transactions.append(transaction)
-
-    return found_transactions
