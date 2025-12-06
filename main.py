@@ -3,7 +3,7 @@ from typing import Any, Dict, List
 
 from src.file_reader import detect_file_type_and_read
 from src.processing import filter_by_state, sort_by_date
-from src.masks import mask_account_card, get_date
+from src.widget import display_transactions
 from src.external_api import convert_amount_to_rub
 from src.generators import filter_by_currency
 from src.logger_config import setup_logger
@@ -12,8 +12,19 @@ from src.logger_config import setup_logger
 logger = setup_logger("main", "main.log")
 
 
+def debug_transactions(transactions: List[Dict[str, Any]], source: str):
+    """Функция для отладки - показывает структуру данных."""
+    if transactions:
+        print(f"\n[DEBUG] Прочитано из {source}: {len(transactions)} транзакций")
+        print(f"[DEBUG] Первая транзакция:")
+        for key, value in transactions[0].items():
+            print(f"  {key}: {value}")
+    else:
+        print(f"\n[DEBUG] {source}: Нет транзакций")
+
+
 def get_file_choice() -> str:
-    """Получает выбор типа файла от пользователя."""
+    """Получает выбор типа файла."""
     print("Привет! Добро пожаловать в программу работы с банковскими транзакциями.")
     print("Выберите необходимый пункт меню:")
     print("1. Получить информацию о транзакциях из JSON-файла")
@@ -65,68 +76,6 @@ def get_yes_no_input(prompt: str) -> bool:
         print('Пожалуйста, введите "Да" или "Нет"')
 
 
-def get_transaction_amount(transaction: Dict[str, Any]) -> tuple:
-    """Извлекает сумму и валюту из транзакции."""
-    operation_amount = transaction.get("operationAmount", {})
-
-    if isinstance(operation_amount, dict):
-        amount = operation_amount.get("amount", "0.00")
-        currency_info = operation_amount.get("currency", {})
-        if isinstance(currency_info, dict):
-            currency = currency_info.get("name", "")
-        else:
-            currency = str(currency_info)
-    else:
-        amount = transaction.get("amount", "0.00")
-        currency = transaction.get("currency", "")
-
-    # Форматируем сумму
-    try:
-        amount = f"{float(amount):.2f}"
-    except (ValueError, TypeError):
-        amount = str(amount)
-
-    return amount, currency
-
-
-def display_transactions(transactions: List[Dict[str, Any]]) -> None:
-    """Отображает список транзакций."""
-    if not transactions:
-        print("Не найдено транзакций, подходящих под условия фильтрации")
-        return
-
-    print(f"Всего банковских операций в выборке: {len(transactions)}\n")
-
-    for transaction in transactions:
-        # Форматируем дату с помощью функции из masks.py
-        date_str = transaction.get("date", "")
-        formatted_date = get_date(date_str)
-
-        description = transaction.get("description", "")
-        from_account = transaction.get("from", "")
-        to_account = transaction.get("to", "")
-
-        # Получаем сумму и валюту
-        amount, currency = get_transaction_amount(transaction)
-
-        # Выводим информацию о транзакции
-        print(f"{formatted_date} {description}")
-
-        # Маскируем номера карт/счетов с помощью функции из masks.py
-        if from_account:
-            masked_from = mask_account_card(from_account)
-            if to_account:
-                masked_to = mask_account_card(to_account)
-                print(f"{masked_from} -> {masked_to}")
-            else:
-                print(f"{masked_from}")
-        elif to_account:
-            masked_to = mask_account_card(to_account)
-            print(f"{masked_to}")
-
-        print(f"Сумма: {amount} {currency}\n")
-
-
 def main():
     """Основная функция программы."""
     try:
@@ -135,10 +84,14 @@ def main():
         file_path = get_file_path(choice)
 
         file_types = {"1": "JSON", "2": "CSV", "3": "XLSX"}
-        print(f"\nОбработка {file_types[choice]}-файла...")
+        file_type = file_types[choice]
+        print(f"\nОбработка {file_type}-файла: {file_path}")
 
         # Чтение транзакций
         transactions = detect_file_type_and_read(file_path)
+
+        # Отладочный вывод
+        debug_transactions(transactions, file_type)
 
         if not transactions:
             print("Не удалось прочитать транзакции из файла.")
@@ -148,6 +101,10 @@ def main():
         state = get_filter_state()
         filtered_transactions = filter_by_state(transactions, state)
         logger.info(f"Фильтрация по статусу '{state}': {len(filtered_transactions)} транзакций")
+
+        if not filtered_transactions:
+            print(f"Нет транзакций со статусом '{state}'")
+            return
 
         # Сортировка по дате
         if get_yes_no_input("Отсортировать операции по дате? Да/Нет: "):
@@ -180,20 +137,30 @@ def main():
                     if "operationAmount" in transaction:
                         transaction["operationAmount"]["amount"] = f"{amount_rub:.2f}"
                         transaction["operationAmount"]["currency"] = {"code": "RUB", "name": "руб."}
+                    elif "operationamount" in transaction:
+                        transaction["operationamount"]["amount"] = f"{amount_rub:.2f}"
+                        transaction["operationamount"]["currency"] = {"code": "RUB", "name": "руб."}
                 except Exception as e:
                     logger.warning(f"Ошибка конвертации: {e}")
 
         # Вывод результата
-        print("\nРезультат:")
+        print("\n" + "=" * 50)
+        print("РЕЗУЛЬТАТ:")
         display_transactions(filtered_transactions)
 
     except FileNotFoundError as e:
         print(f"Ошибка: {e}")
+        print("Убедитесь, что файлы находятся в папке data/:")
+        print("- operations.json")
+        print("- transactions.csv")
+        print("- transactions.xlsx")
     except KeyboardInterrupt:
         print("\nПрограмма прервана.")
     except Exception as e:
         logger.error(f"Ошибка: {e}")
+        import traceback
         print(f"Произошла ошибка: {e}")
+        print("Детали ошибки в лог-файле.")
 
 
 if __name__ == "__main__":
