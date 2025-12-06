@@ -128,3 +128,4 @@ def display_transactions(transactions: List[Dict[str, Any]]) -> None:
             print(f"{masked_to}")
 
         print(f"Сумма: {amount} {currency}\n")
+        
