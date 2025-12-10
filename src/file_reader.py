@@ -7,64 +7,60 @@ logger = setup_logger("file_reader", "file_reader.log")
 
 def read_csv_file(file_path: str) -> List[Dict[str, Any]]:
     """
-    Читает CSV-файл и преобразует в формат, совместимый с JSON-структурой.
+    Читает CSV-файл с разделителем ";" и преобразует в нужный формат.
     """
     logger.debug(f"Попытка чтения CSV файла: {file_path}")
 
     try:
-        # Читаем CSV с указанием кодировки
-        df = pd.read_csv(file_path, encoding='utf-8')
+        # Читаем CSV с разделителем ";" и кодировкой UTF-8
+        df = pd.read_csv(file_path, sep=";", encoding='utf-8')
 
         # Логируем информацию о файле для отладки
         logger.debug(f"CSV файл прочитан. Колонки: {list(df.columns)}")
-        logger.debug(f"Первые строки:\n{df.head()}")
+        logger.debug(f"Всего строк: {len(df)}")
 
-        # Преобразуем DataFrame в список словарей
+        if not df.empty:
+            logger.debug(f"Первые строки:\n{df.head(3)}")
+            logger.debug(
+                f"Уникальные статусы: {df['state'].unique() if 'state' in df.columns else 'Нет колонки state'}")
+
+        # Заменяем NaN на None для корректной конвертации
+        df = df.where(pd.notna(df), None)
+
+        # Конвертируем DataFrame в список словарей
         transactions = df.to_dict("records")
 
-        # Преобразуем структуру к совместимому формату
+        # Проверяем и преобразуем структуру если нужно
         formatted_transactions = []
         for transaction in transactions:
+            # Приводим ключи к нижнему регистру для consistency
             formatted_transaction = {}
-
-            # Преобразуем колонки к нужному формату
             for key, value in transaction.items():
-                # Приводим ключи к нижнему регистру для consistency
-                key_lower = key.lower().strip()
+                key_lower = str(key).lower().strip()
 
-                if pd.isna(value):
-                    formatted_transaction[key_lower] = None
-                elif key_lower in ['amount', 'sum']:
-                    # Для сумм преобразуем к строке с двумя знаками
-                    try:
-                        formatted_transaction[key_lower] = f"{float(value):.2f}"
-                    except:
-                        formatted_transaction[key_lower] = str(value)
-                elif key_lower == 'operationamount':
-                    # Если есть колонка operationAmount как строка
-                    try:
-                        import json
-                        formatted_transaction[key_lower] = json.loads(str(value))
-                    except:
-                        formatted_transaction[key_lower] = str(value)
+                # Особое внимание к полю state - приводим к верхнему регистру
+                if key_lower == 'state' and value:
+                    formatted_transaction[key_lower] = str(value).upper()
                 else:
-                    formatted_transaction[key_lower] = str(value)
+                    formatted_transaction[key_lower] = value
 
-            # Проверяем наличие обязательных полей и создаем структуру как в JSON
-            if 'operationamount' not in formatted_transaction:
-                # Создаем структуру operationAmount из отдельных полей
-                operation_amount = {
-                    "amount": formatted_transaction.get('amount', '0.00'),
-                    "currency": {
-                        "code": formatted_transaction.get('currency_code', 'RUB'),
-                        "name": formatted_transaction.get('currency_name', 'руб.')
-                    }
-                }
-                formatted_transaction['operationamount'] = operation_amount
+            # Проверяем наличие поля state
+            if 'state' not in formatted_transaction:
+                # Пробуем найти поле с другим названием
+                state_keys = [k for k in formatted_transaction.keys() if 'state' in k.lower() or 'status' in k.lower()]
+                if state_keys:
+                    for state_key in state_keys:
+                        if formatted_transaction[state_key]:
+                            formatted_transaction['state'] = str(formatted_transaction[state_key]).upper()
+                            break
 
             formatted_transactions.append(formatted_transaction)
 
         logger.info(f"Успешно прочитан CSV файл: {file_path}. Найдено {len(formatted_transactions)} записей")
+
+        if formatted_transactions:
+            logger.debug(f"Пример первой транзакции: {formatted_transactions[0]}")
+
         return formatted_transactions
 
     except FileNotFoundError:
@@ -76,13 +72,13 @@ def read_csv_file(file_path: str) -> List[Dict[str, Any]]:
     except Exception as e:
         logger.error(f"Ошибка при чтении CSV файла {file_path}: {e}")
         import traceback
-        logger.error(traceback.format_exc())
+        logger.error(f"Трассировка: {traceback.format_exc()}")
         return []
 
 
 def read_excel_file(file_path: str, sheet_name: str = 0) -> List[Dict[str, Any]]:
     """
-    Читает Excel-файл и преобразует в формат, совместимый с JSON-структурой.
+    Читает Excel-файл и преобразует в нужный формат.
     """
     logger.debug(f"Попытка чтения Excel файла: {file_path}, лист: {sheet_name}")
 
@@ -90,52 +86,27 @@ def read_excel_file(file_path: str, sheet_name: str = 0) -> List[Dict[str, Any]]
         # Читаем Excel файл
         df = pd.read_excel(file_path, sheet_name=sheet_name)
 
-        # Логируем информацию о файле для отладки
+        # Логируем информацию о файле
         logger.debug(f"Excel файл прочитан. Колонки: {list(df.columns)}")
-        logger.debug(f"Первые строки:\n{df.head()}")
 
-        # Преобразуем DataFrame в список словарей
+        # Заменяем NaN на None
+        df = df.where(pd.notna(df), None)
+
+        # Конвертируем в список словарей
         transactions = df.to_dict("records")
 
-        # Преобразуем структуру к совместимому формату
+        # Форматируем транзакции
         formatted_transactions = []
         for transaction in transactions:
             formatted_transaction = {}
-
             for key, value in transaction.items():
-                # Приводим ключи к нижнему регистру
                 key_lower = str(key).lower().strip()
 
-                if pd.isna(value):
-                    formatted_transaction[key_lower] = None
-                elif key_lower in ['amount', 'sum', 'operationamount.amount']:
-                    # Для сумм преобразуем к строке с двумя знаками
-                    try:
-                        formatted_transaction[key_lower] = f"{float(value):.2f}"
-                    except:
-                        formatted_transaction[key_lower] = str(value)
-                elif key_lower in ['currency', 'currency.code', 'currency.name']:
-                    formatted_transaction[key_lower] = str(value)
+                # Приводим state к верхнему регистру
+                if key_lower == 'state' and value:
+                    formatted_transaction[key_lower] = str(value).upper()
                 else:
-                    formatted_transaction[key_lower] = str(value) if not pd.isna(value) else None
-
-            # Создаем структуру operationAmount
-            operation_amount = {
-                "amount": formatted_transaction.get('amount',
-                                                    formatted_transaction.get('operationamount.amount', '0.00')),
-                "currency": {
-                    "code": formatted_transaction.get('currency.code',
-                                                      formatted_transaction.get('currency', 'RUB')),
-                    "name": formatted_transaction.get('currency.name',
-                                                      formatted_transaction.get('currency', 'руб.'))
-                }
-            }
-            formatted_transaction['operationamount'] = operation_amount
-
-            # Удаляем временные поля
-            for field in ['amount', 'currency', 'currency.code', 'currency.name', 'operationamount.amount']:
-                if field in formatted_transaction:
-                    del formatted_transaction[field]
+                    formatted_transaction[key_lower] = value
 
             formatted_transactions.append(formatted_transaction)
 
@@ -147,8 +118,6 @@ def read_excel_file(file_path: str, sheet_name: str = 0) -> List[Dict[str, Any]]
         return []
     except Exception as e:
         logger.error(f"Ошибка при чтении Excel файла {file_path}: {e}")
-        import traceback
-        logger.error(traceback.format_exc())
         return []
 
 
@@ -185,10 +154,13 @@ def detect_file_type_and_read(file_path: str) -> List[Dict[str, Any]]:
     logger.debug(f"Определение типа файла: {file_path}")
 
     if file_path.lower().endswith(".csv"):
+        logger.debug(f"Определен как CSV файл: {file_path}")
         return read_csv_file(file_path)
     elif file_path.lower().endswith((".xlsx", ".xls")):
+        logger.debug(f"Определен как Excel файл: {file_path}")
         return read_excel_file(file_path)
     elif file_path.lower().endswith(".json"):
+        logger.debug(f"Определен как JSON файл: {file_path}")
         return read_json_file(file_path)
     else:
         logger.error(f"Неподдерживаемый формат файла: {file_path}")
