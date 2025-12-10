@@ -16,7 +16,26 @@ def filter_by_state(operations: List[Dict[str, Any]], state: str = "EXECUTED") -
     if not operations:
         return []
 
-    return [operation for operation in operations if operation.get("state") == state]
+    target_state = state.upper().strip()
+
+    filtered_operations = []
+    for operation in operations:
+        # Ищем поле state в разных вариантах написания
+        operation_state = None
+
+        # Пробуем разные варианты ключей
+        possible_keys = ['state', 'State', 'STATE', 'status', 'Status', 'STATUS']
+
+        for key in possible_keys:
+            if key in operation and operation[key]:
+                operation_state = str(operation[key]).upper().strip()
+                break
+
+        # Если нашли state и он совпадает с целевым
+        if operation_state and operation_state == target_state:
+            filtered_operations.append(operation)
+
+    return filtered_operations
 
 
 def sort_by_date(operations: List[Dict[str, Any]], reverse: bool = True) -> List[Dict[str, Any]]:
