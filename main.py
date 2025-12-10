@@ -1,30 +1,15 @@
 import os
-from typing import Any, Dict, List
+from typing import List, Dict, Any
 
 from src.file_reader import detect_file_type_and_read
 from src.processing import filter_by_state, sort_by_date
-from src.widget import display_transactions
-from src.external_api import convert_amount_to_rub
-from src.generators import filter_by_currency
-from src.logger_config import setup_logger
-
-# Создаем логгер
-logger = setup_logger("main", "main.log")
-
-
-def debug_transactions(transactions: List[Dict[str, Any]], source: str):
-    """Функция для отладки - показывает структуру данных."""
-    if transactions:
-        print(f"\n[DEBUG] Прочитано из {source}: {len(transactions)} транзакций")
-        print(f"[DEBUG] Первая транзакция:")
-        for key, value in transactions[0].items():
-            print(f"  {key}: {value}")
-    else:
-        print(f"\n[DEBUG] {source}: Нет транзакций")
+from src.widget import mask_account_card, get_date, display_transactions
+from src.generators import filter_by_currency, transaction_descriptions
+from src.utils import process_bank_search, process_bank_operations
 
 
 def get_file_choice() -> str:
-    """Получает выбор типа файла."""
+    """Получает выбор типа файла от пользователя."""
     print("Привет! Добро пожаловать в программу работы с банковскими транзакциями.")
     print("Выберите необходимый пункт меню:")
     print("1. Получить информацию о транзакциях из JSON-файла")
@@ -39,19 +24,14 @@ def get_file_choice() -> str:
 
 
 def get_file_path(choice: str) -> str:
-    """Возвращает путь к файлу."""
+    """Возвращает фиксированный путь к файлу в зависимости от выбора."""
     file_paths = {
-        "1": "data/operations.json",
-        "2": "data/transactions.csv",
-        "3": "data/transactions.xlsx"
+        "1": "data/operations.json",  # Путь к JSON файлу
+        "2": "data/transactions.csv",  # Путь к CSV файлу
+        "3": "data/transactions.xlsx"  # Путь к XLSX файлу
     }
 
-    file_path = file_paths[choice]
-
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"Файл {file_path} не найден.")
-
-    return file_path
+    return file_paths[choice]
 
 
 def get_filter_state() -> str:
@@ -85,22 +65,21 @@ def main():
 
         file_types = {"1": "JSON", "2": "CSV", "3": "XLSX"}
         file_type = file_types[choice]
-        print(f"\nОбработка {file_type}-файла: {file_path}")
+        print(f"\nОбработка {file_type}-файла...")
 
-        # Чтение транзакций
+        # Чтение транзакций из файла
         transactions = detect_file_type_and_read(file_path)
 
-        # Отладочный вывод
-        debug_transactions(transactions, file_type)
-
         if not transactions:
-            print("Не удалось прочитать транзакции из файла.")
+            print(f"Не удалось прочитать транзакции из файла {file_path}")
             return
+
+        print(f"Прочитано {len(transactions)} транзакций")
 
         # Фильтрация по статусу
         state = get_filter_state()
         filtered_transactions = filter_by_state(transactions, state)
-        logger.info(f"Фильтрация по статусу '{state}': {len(filtered_transactions)} транзакций")
+        print(f"Операции отфильтрованы по статусу '{state}'")
 
         if not filtered_transactions:
             print(f"Нет транзакций со статусом '{state}'")
@@ -108,59 +87,47 @@ def main():
 
         # Сортировка по дате
         if get_yes_no_input("Отсортировать операции по дате? Да/Нет: "):
-            reverse = get_yes_no_input("По убыванию (новые сначала)? Да/Нет: ")
+            reverse = get_yes_no_input("Сортировать по убыванию (новые сначала)? Да/Нет: ")
             filtered_transactions = sort_by_date(filtered_transactions, reverse)
-            logger.info("Операции отсортированы по дате")
+            print("Операции отсортированы по дате")
 
         # Фильтрация рублевых транзакций
         if get_yes_no_input("Выводить только рублевые транзакции? Да/Нет: "):
             rub_transactions = list(filter_by_currency(filtered_transactions, "RUB"))
             filtered_transactions = rub_transactions
-            logger.info(f"Оставлены только рублевые транзакции: {len(filtered_transactions)}")
+            print("Выводятся только рублевые транзакции")
 
         # Поиск по описанию
-        if get_yes_no_input("Фильтровать по слову в описании? Да/Нет: "):
+        if get_yes_no_input("Выполнить поиск по описанию транзакций? Да/Нет: "):
             search_term = input("Введите слово для поиска: ").strip()
             if search_term:
-                found_transactions = [
-                    t for t in filtered_transactions
-                    if search_term.lower() in str(t.get("description", "")).lower()
-                ]
-                filtered_transactions = found_transactions
-                logger.info(f"Поиск по '{search_term}': {len(filtered_transactions)} транзакций")
+                filtered_transactions = process_bank_search(filtered_transactions, search_term)
+                print(f"Выполнен поиск по слову '{search_term}'")
 
-        # Конвертация в рубли
-        if get_yes_no_input("Конвертировать все суммы в рубли? Да/Нет: "):
-            for transaction in filtered_transactions:
-                try:
-                    amount_rub = convert_amount_to_rub(transaction)
-                    if "operationAmount" in transaction:
-                        transaction["operationAmount"]["amount"] = f"{amount_rub:.2f}"
-                        transaction["operationAmount"]["currency"] = {"code": "RUB", "name": "руб."}
-                    elif "operationamount" in transaction:
-                        transaction["operationamount"]["amount"] = f"{amount_rub:.2f}"
-                        transaction["operationamount"]["currency"] = {"code": "RUB", "name": "руб."}
-                except Exception as e:
-                    logger.warning(f"Ошибка конвертации: {e}")
+        # Статистика по категориям (опционально)
+        if get_yes_no_input("Показать статистику по категориям операций? Да/Нет: "):
+            categories_input = input("Введите категории через запятую (например: перевод, оплата, вклад): ").strip()
+            if categories_input:
+                categories = [cat.strip() for cat in categories_input.split(",")]
+                operations_stats = process_bank_operations(filtered_transactions, categories)
+                print("\nСтатистика по операциям:")
+                for category, count in operations_stats.items():
+                    print(f"  {category}: {count} операций")
 
-        # Вывод результата
-        print("\n" + "=" * 50)
-        print("РЕЗУЛЬТАТ:")
+        # Вывод транзакций
+        print("\nРезультат обработки транзакций:")
         display_transactions(filtered_transactions)
 
     except FileNotFoundError as e:
-        print(f"Ошибка: {e}")
-        print("Убедитесь, что файлы находятся в папке data/:")
-        print("- operations.json")
-        print("- transactions.csv")
-        print("- transactions.xlsx")
+        print(f"Ошибка: Файл не найден - {e}")
+        print("Убедитесь, что в папке 'data/' находятся файлы:")
+        print("  - operations.json")
+        print("  - transactions.csv")
+        print("  - transactions.xlsx")
     except KeyboardInterrupt:
-        print("\nПрограмма прервана.")
+        print("\n\nПрограмма прервана пользователем.")
     except Exception as e:
-        logger.error(f"Ошибка: {e}")
-        import traceback
         print(f"Произошла ошибка: {e}")
-        print("Детали ошибки в лог-файле.")
 
 
 if __name__ == "__main__":
