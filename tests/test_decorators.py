@@ -44,7 +44,9 @@ class TestLogDecorator:
 
     def test_log_to_file_success(self):
         """Тестирование логирования успешного выполнения в файл"""
-        with tempfile.NamedTemporaryFile(mode="w", delete=False, encoding="utf-8") as temp_file:
+        with tempfile.NamedTemporaryFile(
+            mode="w", delete=False, encoding="utf-8"
+        ) as temp_file:
             temp_filename = temp_file.name
 
         try:
@@ -71,7 +73,9 @@ class TestLogDecorator:
 
     def test_log_to_file_error(self):
         """Тестирование логирования ошибки в файл"""
-        with tempfile.NamedTemporaryFile(mode="w", delete=False, encoding="utf-8") as temp_file:
+        with tempfile.NamedTemporaryFile(
+            mode="w", delete=False, encoding="utf-8"
+        ) as temp_file:
             temp_filename = temp_file.name
 
         try:
@@ -127,7 +131,9 @@ class TestLogDecorator:
     def test_log_without_filename_and_with_filename(self, capsys):
         """Тестирование смешанного использования (с filename и без)"""
         # Создаем временный файл для второго теста
-        with tempfile.NamedTemporaryFile(mode="w", delete=False, encoding="utf-8") as temp_file:
+        with tempfile.NamedTemporaryFile(
+            mode="w", delete=False, encoding="utf-8"
+        ) as temp_file:
             temp_filename = temp_file.name
 
         try:
@@ -152,13 +158,17 @@ class TestLogDecorator:
             # Проверяем вывод в консоль (только от console_func)
             captured = capsys.readouterr()
             assert "console_func ok" in captured.out
-            assert "file_func" not in captured.out  # file_func пишет в файл, не в консоль
+            assert (
+                "file_func" not in captured.out
+            )  # file_func пишет в файл, не в консоль
 
             # Проверяем запись в файл (только от file_func)
             with open(temp_filename, "r", encoding="utf-8") as f:
                 content = f.read()
                 assert "file_func ok" in content
-                assert "console_func" not in content  # console_func пишет в консоль, не в файл
+                assert (
+                    "console_func" not in content
+                )  # console_func пишет в консоль, не в файл
 
         finally:
             # Удаляем временный файл

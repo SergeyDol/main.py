@@ -50,7 +50,9 @@ class TestExternalAPI:
     @patch("src.external_api.get_exchange_rate")
     def test_convert_amount_to_rub_rub(self, mock_rate):
         """Тестирование конвертации RUB в RUB"""
-        transaction = {"operationAmount": {"amount": "100.50", "currency": {"code": "RUB"}}}
+        transaction = {
+            "operationAmount": {"amount": "100.50", "currency": {"code": "RUB"}}
+        }
 
         result = convert_amount_to_rub(transaction)
         assert result == 100.50
@@ -61,7 +63,9 @@ class TestExternalAPI:
         """Тестирование конвертации USD в RUB"""
         mock_rate.return_value = 92.5
 
-        transaction = {"operationAmount": {"amount": "100.0", "currency": {"code": "USD"}}}
+        transaction = {
+            "operationAmount": {"amount": "100.0", "currency": {"code": "USD"}}
+        }
 
         result = convert_amount_to_rub(transaction)
         assert result == 9250.0  # 100 * 92.5
@@ -72,7 +76,9 @@ class TestExternalAPI:
         """Тестирование конвертации EUR в RUB"""
         mock_rate.return_value = 100.0
 
-        transaction = {"operationAmount": {"amount": "50.0", "currency": {"code": "EUR"}}}
+        transaction = {
+            "operationAmount": {"amount": "50.0", "currency": {"code": "EUR"}}
+        }
 
         result = convert_amount_to_rub(transaction)
         assert result == 5000.0  # 50 * 100.0
@@ -83,14 +89,18 @@ class TestExternalAPI:
         """Тестирование ошибки при получении курса валют"""
         mock_rate.return_value = None
 
-        transaction = {"operationAmount": {"amount": "100.0", "currency": {"code": "USD"}}}
+        transaction = {
+            "operationAmount": {"amount": "100.0", "currency": {"code": "USD"}}
+        }
 
         with pytest.raises(ValueError, match="Could not get exchange rate for USD"):
             convert_amount_to_rub(transaction)
 
     def test_convert_amount_to_rub_invalid_amount(self):
         """Тестирование конвертации с некорректной суммой"""
-        transaction = {"operationAmount": {"amount": "invalid", "currency": {"code": "RUB"}}}
+        transaction = {
+            "operationAmount": {"amount": "invalid", "currency": {"code": "RUB"}}
+        }
 
         result = convert_amount_to_rub(transaction)
         assert result == 0.0

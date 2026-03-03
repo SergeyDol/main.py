@@ -1,6 +1,6 @@
 import pytest
 
-from src.utils.transaction_operations import process_bank_operations, process_bank_search
+from src.utils import process_bank_operations, process_bank_search
 
 
 class TestTransactionOperations:
@@ -48,7 +48,9 @@ class TestTransactionOperations:
         """Тест поиска транзакций - найденные результаты."""
         result = process_bank_search(sample_transactions, "перевод")
         assert len(result) == 2
-        assert all("перевод" in transaction["description"].lower() for transaction in result)
+        assert all(
+            "перевод" in transaction["description"].lower() for transaction in result
+        )
 
     def test_process_bank_search_not_found(self, sample_transactions):
         """Тест поиска транзакций - результаты не найдены."""

@@ -1,11 +1,11 @@
 import os
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
 from src.file_reader import detect_file_type_and_read
+from src.generators import filter_by_currency
 from src.processing import filter_by_state, sort_by_date
+from src.utils import process_bank_operations, process_bank_search
 from src.widget import display_transactions
-from src.generators import filter_by_currency, transaction_descriptions
-from src.utils import process_bank_search, process_bank_operations
 
 
 def debug_transactions_info(transactions: List[Dict[str, Any]], source: str):
@@ -17,12 +17,12 @@ def debug_transactions_info(transactions: List[Dict[str, Any]], source: str):
         # Проверяем наличие поля state
         states = set()
         for t in transactions:
-            if 'state' in t:
-                states.add(str(t['state']).upper())
-            elif 'State' in t:
-                states.add(str(t['State']).upper())
-            elif 'STATE' in t:
-                states.add(str(t['STATE']).upper())
+            if "state" in t:
+                states.add(str(t["state"]).upper())
+            elif "State" in t:
+                states.add(str(t["State"]).upper())
+            elif "STATE" in t:
+                states.add(str(t["STATE"]).upper())
 
         if states:
             print(f"[DEBUG] Уникальные статусы в данных: {states}")
@@ -30,7 +30,7 @@ def debug_transactions_info(transactions: List[Dict[str, Any]], source: str):
             print("[DEBUG] Поле 'state' не найдено в транзакциях")
 
         # Показываем первые 2 транзакции для отладки
-        print(f"[DEBUG] Первые 2 транзакции:")
+        print("[DEBUG] Первые 2 транзакции:")
         for i in range(min(2, len(transactions))):
             print(f"  Транзакция {i + 1}:")
             for key, value in transactions[i].items():
@@ -60,7 +60,7 @@ def get_file_path(choice: str) -> str:
     file_paths = {
         "1": "data/operations.json",  # Путь к JSON файлу
         "2": "data/transactions.csv",  # Путь к CSV файлу
-        "3": "data/transactions.xlsx"  # Путь к XLSX файлу
+        "3": "data/transactions.xlsx",  # Путь к XLSX файлу
     }
 
     return file_paths[choice]
@@ -125,7 +125,9 @@ def main():
 
         # Сортировка по дате
         if get_yes_no_input("Отсортировать операции по дате? Да/Нет: "):
-            reverse = get_yes_no_input("Сортировать по убыванию (новые сначала)? Да/Нет: ")
+            reverse = get_yes_no_input(
+                "Сортировать по убыванию (новые сначала)? Да/Нет: "
+            )
             filtered_transactions = sort_by_date(filtered_transactions, reverse)
             print("Операции отсортированы по дате")
 
@@ -140,16 +142,22 @@ def main():
         if get_yes_no_input("Выполнить поиск по описанию транзакций? Да/Нет: "):
             search_term = input("Введите слово для поиска: ").strip()
             if search_term:
-                filtered_transactions = process_bank_search(filtered_transactions, search_term)
+                filtered_transactions = process_bank_search(
+                    filtered_transactions, search_term
+                )
                 print(f"Выполнен поиск по слову '{search_term}'")
                 print(f"Найдено {len(filtered_transactions)} транзакций")
 
         # Статистика по категориям (опционально)
         if get_yes_no_input("Показать статистику по категориям операций? Да/Нет: "):
-            categories_input = input("Введите категории через запятую (например: перевод, оплата, вклад): ").strip()
+            categories_input = input(
+                "Введите категории через запятую (например: перевод, оплата, вклад): "
+            ).strip()
             if categories_input:
                 categories = [cat.strip() for cat in categories_input.split(",")]
-                operations_stats = process_bank_operations(filtered_transactions, categories)
+                operations_stats = process_bank_operations(
+                    filtered_transactions, categories
+                )
                 print("\nСтатистика по операциям:")
                 for category, count in operations_stats.items():
                     print(f"  {category}: {count} операций")
@@ -176,6 +184,7 @@ def main():
     except Exception as e:
         print(f"\nПроизошла ошибка: {e}")
         import traceback
+
         print("Детали ошибки:")
         print(traceback.format_exc())
 

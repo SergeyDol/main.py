@@ -21,18 +21,27 @@ def get_exchange_rate(from_currency: str, to_currency: str = "RUB") -> Optional[
     """
     api_key = os.getenv("EXCHANGE_RATE_API_KEY")
     if not api_key or api_key == "your_api_key_here":
-        raise ValueError("API key not found or set to default. " "Please set EXCHANGE_RATE_API_KEY in your .env file")
+        raise ValueError(
+            "API key not found or set to default. "
+            "Please set EXCHANGE_RATE_API_KEY in your .env file"
+        )
 
     url = "https://api.apilayer.com/exchangerates_data/latest"
 
     try:
         response = requests.get(
-            url, params={"base": from_currency, "symbols": to_currency}, headers={"apikey": api_key}, timeout=10
+            url,
+            params={"base": from_currency, "symbols": to_currency},
+            headers={"apikey": api_key},
+            timeout=10,
         )
 
         if response.status_code == 200:
             data = response.json()
-            return data["rates"].get(to_currency)
+            rate = data["rates"].get(to_currency)
+            if rate is not None and isinstance(rate, (int, float)):
+                return float(rate)
+            return None
         else:
             print(f"API Error: {response.status_code} - {response.text}")
             return None

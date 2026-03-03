@@ -23,7 +23,9 @@ class TestLoggingRequirements:
 
         # Проверяем наличие file handler
         assert len(logger.handlers) > 0
-        assert any(isinstance(handler, logging.FileHandler) for handler in logger.handlers)
+        assert any(
+            isinstance(handler, logging.FileHandler) for handler in logger.handlers
+        )
 
     def test_masks_logger_has_correct_settings(self):
         """Проверка настроек логгера для модуля masks"""
@@ -38,7 +40,9 @@ class TestLoggingRequirements:
 
         # Проверяем наличие file handler
         assert len(logger.handlers) > 0
-        assert any(isinstance(handler, logging.FileHandler) for handler in logger.handlers)
+        assert any(
+            isinstance(handler, logging.FileHandler) for handler in logger.handlers
+        )
 
     def test_log_files_created(self):
         """Проверка создания файлов логов"""

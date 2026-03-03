@@ -1,5 +1,5 @@
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 from src.main import filter_rub_transactions, format_transaction
 
 
@@ -9,9 +9,18 @@ class TestMain:
     def test_filter_rub_transactions(self):
         """Тестирование фильтрации рублевых транзакций"""
         transactions = [
-            {"id": 1, "operationAmount": {"amount": "100", "currency": {"code": "RUB"}}},
-            {"id": 2, "operationAmount": {"amount": "200", "currency": {"code": "USD"}}},
-            {"id": 3, "operationAmount": {"amount": "300", "currency": {"code": "RUB"}}},
+            {
+                "id": 1,
+                "operationAmount": {"amount": "100", "currency": {"code": "RUB"}},
+            },
+            {
+                "id": 2,
+                "operationAmount": {"amount": "200", "currency": {"code": "USD"}},
+            },
+            {
+                "id": 3,
+                "operationAmount": {"amount": "300", "currency": {"code": "RUB"}},
+            },
         ]
 
         result = filter_rub_transactions(transactions)
@@ -27,8 +36,8 @@ class TestMain:
             "to": "MasterCard 9876543210987654",
             "operationAmount": {
                 "amount": "100.50",
-                "currency": {"code": "RUB", "name": "руб."}
-            }
+                "currency": {"code": "RUB", "name": "руб."},
+            },
         }
 
         result = format_transaction(transaction)
@@ -46,14 +55,14 @@ class TestMain:
             "to": "Счет 12345678901234567890",
             "operationAmount": {
                 "amount": "500.75",
-                "currency": {"code": "RUB", "name": "руб."}
-            }
+                "currency": {"code": "RUB", "name": "руб."},
+            },
         }
 
         result = format_transaction(transaction)
         assert "Счет **7890" in result
 
-    @patch('src.main.convert_amount_to_rub')
+    @patch("src.main.convert_amount_to_rub")
     def test_format_transaction_with_conversion(self, mock_convert):
         """Тестирование форматирования с конвертацией в рубли"""
         mock_convert.return_value = 7500.0
@@ -63,8 +72,8 @@ class TestMain:
             "description": "Перевод",
             "operationAmount": {
                 "amount": "100",
-                "currency": {"code": "USD", "name": "USD"}
-            }
+                "currency": {"code": "USD", "name": "USD"},
+            },
         }
 
         result = format_transaction(transaction)
@@ -74,8 +83,8 @@ class TestMain:
 class TestMainIntegration:
     """Интеграционные тесты для main"""
 
-    @patch('src.main.detect_file_type_and_read')
-    @patch('src.main.input')
+    @patch("src.main.detect_file_type_and_read")
+    @patch("src.main.input")
     def test_main_flow_json(self, mock_input, mock_detect):
         """Тестирование основного потока для JSON"""
         # Мокаем ввод пользователя
@@ -84,7 +93,7 @@ class TestMainIntegration:
             "EXECUTED",  # Статус
             "нет",  # Сортировка
             "нет",  # Рублевые
-            "нет"  # Поиск по описанию
+            "нет",  # Поиск по описанию
         ]
 
         # Мокаем чтение файла
@@ -96,11 +105,12 @@ class TestMainIntegration:
                 "description": "Перевод",
                 "operationAmount": {
                     "amount": "100",
-                    "currency": {"code": "RUB", "name": "руб."}
-                }
+                    "currency": {"code": "RUB", "name": "руб."},
+                },
             }
         ]
 
         # Запускаем main (должен работать без ошибок)
         from src.main import main
+
         main()

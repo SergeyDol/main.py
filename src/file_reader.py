@@ -1,5 +1,7 @@
 from typing import Any, Dict, List
+
 import pandas as pd
+
 from .logger_config import setup_logger
 
 logger = setup_logger("file_reader", "file_reader.log")
@@ -13,7 +15,7 @@ def read_csv_file(file_path: str) -> List[Dict[str, Any]]:
 
     try:
         # Читаем CSV с разделителем ";" и кодировкой UTF-8
-        df = pd.read_csv(file_path, sep=";", encoding='utf-8')
+        df = pd.read_csv(file_path, sep=";", encoding="utf-8")
 
         # Логируем информацию о файле для отладки
         logger.debug(f"CSV файл прочитан. Колонки: {list(df.columns)}")
@@ -22,7 +24,8 @@ def read_csv_file(file_path: str) -> List[Dict[str, Any]]:
         if not df.empty:
             logger.debug(f"Первые строки:\n{df.head(3)}")
             logger.debug(
-                f"Уникальные статусы: {df['state'].unique() if 'state' in df.columns else 'Нет колонки state'}")
+                f"Уникальные статусы: {df['state'].unique() if 'state' in df.columns else 'Нет колонки state'}"
+            )
 
         # Заменяем NaN на None для корректной конвертации
         df = df.where(pd.notna(df), None)
@@ -39,24 +42,32 @@ def read_csv_file(file_path: str) -> List[Dict[str, Any]]:
                 key_lower = str(key).lower().strip()
 
                 # Особое внимание к полю state - приводим к верхнему регистру
-                if key_lower == 'state' and value:
+                if key_lower == "state" and value:
                     formatted_transaction[key_lower] = str(value).upper()
                 else:
                     formatted_transaction[key_lower] = value
 
             # Проверяем наличие поля state
-            if 'state' not in formatted_transaction:
+            if "state" not in formatted_transaction:
                 # Пробуем найти поле с другим названием
-                state_keys = [k for k in formatted_transaction.keys() if 'state' in k.lower() or 'status' in k.lower()]
+                state_keys = [
+                    k
+                    for k in formatted_transaction.keys()
+                    if "state" in k.lower() or "status" in k.lower()
+                ]
                 if state_keys:
                     for state_key in state_keys:
                         if formatted_transaction[state_key]:
-                            formatted_transaction['state'] = str(formatted_transaction[state_key]).upper()
+                            formatted_transaction["state"] = str(
+                                formatted_transaction[state_key]
+                            ).upper()
                             break
 
             formatted_transactions.append(formatted_transaction)
 
-        logger.info(f"Успешно прочитан CSV файл: {file_path}. Найдено {len(formatted_transactions)} записей")
+        logger.info(
+            f"Успешно прочитан CSV файл: {file_path}. Найдено {len(formatted_transactions)} записей"
+        )
 
         if formatted_transactions:
             logger.debug(f"Пример первой транзакции: {formatted_transactions[0]}")
@@ -72,11 +83,12 @@ def read_csv_file(file_path: str) -> List[Dict[str, Any]]:
     except Exception as e:
         logger.error(f"Ошибка при чтении CSV файла {file_path}: {e}")
         import traceback
+
         logger.error(f"Трассировка: {traceback.format_exc()}")
         return []
 
 
-def read_excel_file(file_path: str, sheet_name: str = 0) -> List[Dict[str, Any]]:
+def read_excel_file(file_path: str, sheet_name: str = "0") -> List[Dict[str, Any]]:
     """
     Читает Excel-файл и преобразует в нужный формат.
     """
@@ -103,14 +115,16 @@ def read_excel_file(file_path: str, sheet_name: str = 0) -> List[Dict[str, Any]]
                 key_lower = str(key).lower().strip()
 
                 # Приводим state к верхнему регистру
-                if key_lower == 'state' and value:
+                if key_lower == "state" and value:
                     formatted_transaction[key_lower] = str(value).upper()
                 else:
                     formatted_transaction[key_lower] = value
 
             formatted_transactions.append(formatted_transaction)
 
-        logger.info(f"Успешно прочитан Excel файл: {file_path}. Найдено {len(formatted_transactions)} записей")
+        logger.info(
+            f"Успешно прочитан Excel файл: {file_path}. Найдено {len(formatted_transactions)} записей"
+        )
         return formatted_transactions
 
     except FileNotFoundError:
@@ -132,7 +146,9 @@ def read_json_file(file_path: str) -> List[Dict[str, Any]]:
             data = json.load(file)
 
         if isinstance(data, list):
-            logger.info(f"Успешно прочитан JSON файл: {file_path}. Найдено {len(data)} записей")
+            logger.info(
+                f"Успешно прочитан JSON файл: {file_path}. Найдено {len(data)} записей"
+            )
             return data
         else:
             logger.warning(f"Файл {file_path} не содержит список.")

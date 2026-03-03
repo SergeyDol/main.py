@@ -32,7 +32,9 @@ class TestMasks:
     )
     def test_get_mask_card_number_invalid(self, invalid_card_number):
         """Тестирование некорректных номеров карт"""
-        with pytest.raises(ValueError, match="Номер карты должен быть строкой из 16 цифр"):
+        with pytest.raises(
+            ValueError, match="Номер карты должен быть строкой из 16 цифр"
+        ):
             get_mask_card_number(invalid_card_number)
 
     # Тесты для get_mask_account
@@ -60,5 +62,7 @@ class TestMasks:
     )
     def test_get_mask_account_invalid(self, invalid_account_number):
         """Тестирование некорректных номеров счетов"""
-        with pytest.raises(ValueError, match="Номер счёта должен быть строкой с минимум 4 цифрами"):
+        with pytest.raises(
+            ValueError, match="Номер счёта должен быть строкой с минимум 4 цифрами"
+        ):
             get_mask_account(invalid_account_number)
