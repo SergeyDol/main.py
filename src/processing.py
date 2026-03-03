@@ -2,7 +2,9 @@ from datetime import datetime
 from typing import Any, Dict, List
 
 
-def filter_by_state(operations: List[Dict[str, Any]], state: str = "EXECUTED") -> List[Dict[str, Any]]:
+def filter_by_state(
+    operations: List[Dict[str, Any]], state: str = "EXECUTED"
+) -> List[Dict[str, Any]]:
     """
     Фильтрует список операций по состоянию.
 
@@ -24,7 +26,7 @@ def filter_by_state(operations: List[Dict[str, Any]], state: str = "EXECUTED") -
         operation_state = None
 
         # Пробуем разные варианты ключей
-        possible_keys = ['state', 'State', 'STATE', 'status', 'Status', 'STATUS']
+        possible_keys = ["state", "State", "STATE", "status", "Status", "STATUS"]
 
         for key in possible_keys:
             if key in operation and operation[key]:
@@ -38,7 +40,9 @@ def filter_by_state(operations: List[Dict[str, Any]], state: str = "EXECUTED") -
     return filtered_operations
 
 
-def sort_by_date(operations: List[Dict[str, Any]], reverse: bool = True) -> List[Dict[str, Any]]:
+def sort_by_date(
+    operations: List[Dict[str, Any]], reverse: bool = True
+) -> List[Dict[str, Any]]:
     """
     Сортирует список операций по дате.
 

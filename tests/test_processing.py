@@ -45,7 +45,9 @@ class TestProcessing:
         parsed_dates = []
         for date_str in dates:
             try:
-                parsed_dates.append(datetime.fromisoformat(date_str.replace("Z", "+00:00")))
+                parsed_dates.append(
+                    datetime.fromisoformat(date_str.replace("Z", "+00:00"))
+                )
             except (ValueError, TypeError):
                 pass
 

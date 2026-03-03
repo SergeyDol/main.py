@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 
 def mask_account_card(account_info: str) -> str:
@@ -51,46 +51,47 @@ def get_date(date_string: str) -> str:
         return date_string
 
 
-def get_transaction_amount(transaction: Dict[str, Any]) -> tuple:
+def get_transaction_amount(transaction: Dict[str, Any]) -> Tuple[str, str]:
     """Извлекает сумму и валюту из транзакции с поддержкой разных форматов."""
     # Пробуем разные форматы
-    amount = "0.00"
-    currency = ""
+    amount_val: Any = "0.00"
+    currency_val: Any = ""
 
     # Формат 1: operationAmount как словарь
     operation_amount = transaction.get("operationAmount")
     if isinstance(operation_amount, dict):
-        amount = operation_amount.get("amount", "0.00")
+        amount_val = operation_amount.get("amount", "0.00")
         currency_info = operation_amount.get("currency", {})
         if isinstance(currency_info, dict):
-            currency = currency_info.get("name", currency_info.get("code", ""))
+            currency_val = currency_info.get("name", currency_info.get("code", ""))
         else:
-            currency = str(currency_info)
+            currency_val = str(currency_info)
 
     # Формат 2: прямые поля amount и currency
     elif "amount" in transaction:
-        amount = transaction.get("amount", "0.00")
-        currency = transaction.get("currency", "")
+        amount_val = transaction.get("amount", "0.00")
+        currency_val = transaction.get("currency", "")
 
     # Формат 3: поля с префиксами
     elif "operationamount" in transaction:
         if isinstance(transaction["operationamount"], dict):
-            amount = transaction["operationamount"].get("amount", "0.00")
+            amount_val = transaction["operationamount"].get("amount", "0.00")
             currency_info = transaction["operationamount"].get("currency", {})
             if isinstance(currency_info, dict):
-                currency = currency_info.get("name", currency_info.get("code", ""))
+                currency_val = currency_info.get("name", currency_info.get("code", ""))
             else:
-                currency = str(currency_info)
+                currency_val = str(currency_info)
 
     # Форматируем сумму
     try:
         # Убираем возможные пробелы и лишние символы
-        amount_str = str(amount).strip().replace(',', '.')
-        amount = f"{float(amount_str):.2f}"
+        amount_str = str(amount_val).strip().replace(",", ".")
+        amount_formatted = f"{float(amount_str):.2f}"
     except (ValueError, TypeError):
-        amount = str(amount)
+        amount_formatted = str(amount_val)
 
-    return amount, currency
+    # Явно преобразуем в строку для возврата
+    return amount_formatted, str(currency_val)
 
 
 def display_transactions(transactions: List[Dict[str, Any]]) -> None:
@@ -128,4 +129,3 @@ def display_transactions(transactions: List[Dict[str, Any]]) -> None:
             print(f"{masked_to}")
 
         print(f"Сумма: {amount} {currency}\n")
-        

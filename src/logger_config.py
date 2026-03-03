@@ -3,7 +3,9 @@ import os
 from logging.handlers import RotatingFileHandler
 
 
-def setup_logger(name: str, log_file: str, level: int = logging.DEBUG) -> logging.Logger:
+def setup_logger(
+    name: str, log_file: str, level: int = logging.DEBUG
+) -> logging.Logger:
     """
     Настраивает и возвращает логгер для модуля.
     """

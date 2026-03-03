@@ -18,10 +18,16 @@ def mask_account_card(account_info: str) -> str:
         # Маскировка для карты (если тип указан и это не "счет")
         if len(number_part) != 16:
             return account_info  # Некорректная длина номера карты
-        masked_number = number_part[:4] + " " + number_part[4:6] + "** **** " + number_part[-4:]
+        masked_number = (
+            number_part[:4] + " " + number_part[4:6] + "** **** " + number_part[-4:]
+        )
 
     # Убираем лишний пробел, если name_part пустой
-    return f"{name_part.capitalize()} {masked_number}".strip() if name_part else masked_number
+    return (
+        f"{name_part.capitalize()} {masked_number}".strip()
+        if name_part
+        else masked_number
+    )
 
 
 print(mask_account_card("7000792289606361"))

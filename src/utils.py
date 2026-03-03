@@ -30,10 +30,14 @@ def read_json_file(file_path: str) -> List[Dict[str, Any]]:
 
         # Проверяем, что данные являются списком
         if isinstance(data, list):
-            logger.info(f"Успешно прочитан JSON файл: {file_path}. Найдено {len(data)} записей")
+            logger.info(
+                f"Успешно прочитан JSON файл: {file_path}. Найдено {len(data)} записей"
+            )
             return data
         else:
-            logger.warning(f"Файл {file_path} не содержит список. Возвращен пустой список")
+            logger.warning(
+                f"Файл {file_path} не содержит список. Возвращен пустой список"
+            )
             return []
 
     except FileNotFoundError:
@@ -66,8 +70,16 @@ def load_csv_transactions(file_path: str) -> List[Dict[str, Any]]:
         # Преобразуем DataFrame в список словарей
         transactions = df.to_dict("records")
 
-        logger.info(f"Успешно загружено {len(transactions)} транзакций из CSV файла")
-        return transactions
+        # Преобразуем ключи в строки
+        result: List[Dict[str, Any]] = []
+        for transaction in transactions:
+            str_dict: Dict[str, Any] = {}
+            for key, value in transaction.items():
+                str_dict[str(key)] = value
+            result.append(str_dict)
+
+        logger.info(f"Успешно загружено {len(result)} транзакций из CSV файла")
+        return result
 
     except FileNotFoundError:
         logger.error(f"Файл не найден: {file_path}")
@@ -99,8 +111,16 @@ def load_excel_transactions(file_path: str) -> List[Dict[str, Any]]:
         # Преобразуем DataFrame в список словарей
         transactions = df.to_dict("records")
 
-        logger.info(f"Успешно загружено {len(transactions)} транзакций из Excel файла")
-        return transactions
+        # Преобразуем ключи в строки
+        result: List[Dict[str, Any]] = []
+        for transaction in transactions:
+            str_dict: Dict[str, Any] = {}
+            for key, value in transaction.items():
+                str_dict[str(key)] = value
+            result.append(str_dict)
+
+        logger.info(f"Успешно загружено {len(result)} транзакций из Excel файла")
+        return result
 
     except FileNotFoundError:
         logger.error(f"Файл не найден: {file_path}")
@@ -113,7 +133,9 @@ def load_excel_transactions(file_path: str) -> List[Dict[str, Any]]:
         return []
 
 
-def process_bank_search(data: List[Dict[str, Any]], search: str) -> List[Dict[str, Any]]:
+def process_bank_search(
+    data: List[Dict[str, Any]], search: str
+) -> List[Dict[str, Any]]:
     """
     Ищет транзакции по заданной строке в описании с использованием регулярных выражений.
 
@@ -142,7 +164,9 @@ def process_bank_search(data: List[Dict[str, Any]], search: str) -> List[Dict[st
     return result
 
 
-def process_bank_operations(data: List[Dict[str, Any]], categories: List[str]) -> Dict[str, int]:
+def process_bank_operations(
+    data: List[Dict[str, Any]], categories: List[str]
+) -> Dict[str, int]:
     """
     Подсчитывает количество банковских операций по категориям.
 

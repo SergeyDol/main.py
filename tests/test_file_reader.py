@@ -4,7 +4,8 @@ from unittest.mock import MagicMock, patch
 
 import pandas as pd
 
-from src.file_reader import detect_file_type_and_read, read_csv_file, read_excel_file
+from src.file_reader import (detect_file_type_and_read, read_csv_file,
+                             read_excel_file)
 
 
 class TestFileReader:
@@ -36,7 +37,10 @@ class TestFileReader:
         """Тестирование чтения CSV файла с использованием Mock"""
         # Настраиваем mock
         mock_df = MagicMock()
-        mock_df.to_dict.return_value = [{"id": 1, "amount": "100.50"}, {"id": 2, "amount": "200.75"}]
+        mock_df.to_dict.return_value = [
+            {"id": 1, "amount": "100.50"},
+            {"id": 2, "amount": "200.75"},
+        ]
         mock_read_csv.return_value = mock_df
 
         result = read_csv_file("test.csv")
@@ -84,7 +88,10 @@ class TestFileReader:
         """Тестирование чтения Excel файла с использованием Mock"""
         # Настраиваем mock
         mock_df = MagicMock()
-        mock_df.to_dict.return_value = [{"id": 1, "amount": "100.50"}, {"id": 2, "amount": "200.75"}]
+        mock_df.to_dict.return_value = [
+            {"id": 1, "amount": "100.50"},
+            {"id": 2, "amount": "200.75"},
+        ]
         mock_read_excel.return_value = mock_df
 
         result = read_excel_file("test.xlsx")
