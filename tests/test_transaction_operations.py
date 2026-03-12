@@ -1,5 +1,4 @@
 import pytest
-
 from src.utils import process_bank_operations, process_bank_search
 
 
